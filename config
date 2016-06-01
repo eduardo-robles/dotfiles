@@ -115,14 +115,12 @@ bindsym $mod+a focus parent
 
 # Startup Programs
 #  exec --no-startup-id nm-applet
-   exec_always xrandr --output VIRTUAL1 --off --output LVDS1 --off --output VGA1 --primary --mode 1360x768 --pos 0x0 --rotate normal
-#  exec --no-startup-id /usr/bin/mate-settings-daemon
+   #  exec --no-startup-id /usr/bin/mate-settings-daemon
   exec firefox
   exec mate-terminal
 #  exec caja
   exec pluma
   exec spotify
-#  exec_always --no-startup-id feh --bg-scale ~/usr/share/backgrounds/mate/desktop/Stripes.png
 
 set $workspace1 "1: Firefox "
 set $workspace2 "2: Terminal "
@@ -217,7 +215,7 @@ bindsym $mod+r mode "resize"
 
 
 bar {
-        status_command py3status -c /home/eddie/testing_i3status.conf
+        status_command py3status -c testing_i3status.conf
 
         # strip_workspace_numbers yes
         # bindsym button4 nop
