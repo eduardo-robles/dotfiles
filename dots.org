@@ -351,7 +351,6 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
 #+END_SRC
 
 *** All The Icons
-
 #+BEGIN_SRC emacs-lisp
 (use-package all-the-icons)
 
@@ -964,4 +963,5 @@ See https://ox-hugo.scripter.co/doc/org-capture-setup/
    ██║   ██║  ██║╚██████╗╚██████╔╝███████║    ██║  ██║██║ ╚████║██████╔╝    ███████╗██║██║ ╚████║╚██████╔╝██╔╝ ██╗
    ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝     ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝
 
-*** tacosandlinux.png
+*** TODO tacosandlinux.png
+Add png to config
