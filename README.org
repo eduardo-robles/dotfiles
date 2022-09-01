@@ -26,9 +26,9 @@ emacs and never looked back.
 :CUSTOM_ID: connect-with-me
 :align: left
 :END:
-[[https://twitter.com/tacosandlinux][[[https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/twitter.svg]]]]
-[[https://linkedin.com/in/hello-im-eduardo][[[https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg]]]]
-[[/https://www.eduardorobles.com/index.xml][[[https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/rss.svg]
+[[https://twitter.com/tacosandlinux][https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/twitter.svg]]
+[[https://linkedin.com/in/hello-im-eduardo][https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg]]
+[[/https://www.eduardorobles.com/index.xml][https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/rss.svg]]
 
 *** Support:
 :PROPERTIES:
