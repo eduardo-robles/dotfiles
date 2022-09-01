@@ -1,0 +1,951 @@
+#+TITLE: Literate Dotfile Configuration
+#+AUTHOR: Eduardo Robles
+#+DATE: 09-01-2022
+#+EMAIL: eduardorobles@proton.me
+#+OPTIONS: num:nil html-style:nil
+
+* Literate Dotfile Configuration
+* Purpose:
+  This document serves as a means to create a centralized location for all my system depedent configurations.
+* System Installation
+** TODO Setup export file on org-babel for configs (i.e: tmux, screen, systemd, etc)
+** Emacs
+*** Systemd
+    Install Emacs via package manager and create an Emaclient service with Systemd like so:
+
+- Create =systemd= service file at this location.
+    ~/.config/systemd/user/default.target.wants/emacs.service~
+- Add these configurations
+#+BEGIN_SRC bash
+[Unit]
+Description=Emacs: the extensible, self-documenting text editor
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/emacs --daemon
+ExecStop=/usr/bin/emacsclient --eval "(kill-emacs)"
+Restart=always
+
+[Install]
+WantedBy=default.target
+#+END_SRC
+- To enable and start =systemd= service:
+  ~systemctl --user enable emacs && systemctl --user start emacs~
+- To restart and quickly stop emacs service:
+  ~systemctl --user restart emacs~
+- Launch Emacs with:
+  ~emacsclient -t~ or ~emacsclient -c -a~
+** SSH Agent
+*** Systemd
+** Screen
+#+BEGIN_SRC conf
+startup_message off
+caption always "%{= ..}%-w%{= gW}%n %t%{-}%+w %-= @%H - %D %M %d - %C%a"
+backtick 2 300 0 whoami
+hardstatus on
+hardstatus string '%2`@%H<%t>'
+shell bash
+
+vbell off
+bell_msg "Bell in %n-%t at <%c> ^G"
+
+# terminfo and termcap for nice 256 color terminal
+# allow bold colors - necessary for some reason
+attrcolor b ".I"
+# tell screen how to set colors. AB = background, AF=foreground
+termcapinfo rxvt*|xterm*    'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+
+# erase background with current bg color
+defbce "on"
+
+# huge scrollback buffer
+defscrollback 5000
+noblock 5
+
+# mouse tracking allows to switch region focus by clicking
+mousetrack on
+
+# navigating regions with Ctrl-arrows
+bindkey "^[[1;5D" focus left
+bindkey "^[[1;5C" focus right
+bindkey "^[[1;5A" focus up
+bindkey "^[[1;5B" focus down
+
+
+screen -t Home 1 bash
+screen -t emt 2 emacsclient -t -c
+bind R screen -t '% |rpi:' 3 ssh rpi-dev-srv
+bind P screen -t '% |proxmox:' 4 ssh proxmox
+#screen -t Downloads 5 cd /home/erobles/Downloads/
+select 1
+bind c screen 1 # window numbering starts at 1 not 0
+bind 0 select 10
+#+END_SRC
+** Tmux
+#+BEGIN_SRC conf
+# Set crtl-t to Modify Key
+unbind C-b
+set -g prefix C-t
+
+# Force 256 Colors
+set -g default-terminal "screen-256color"
+
+# Move between panes withs t and +
+unbind ^T
+bind ^T select-pane -t :.+
+
+# emacs key bindings in tmux command prompt (prefix + :) are better than
+# vi keys, even for vim users
+set -g status-keys emacs
+
+# Split panes with V and H
+bind h split-window -v
+bind v split-window -h
+
+# Pane Navigation
+bind l select-pane -L
+bind k select-pane -D
+bind i select-pane -U
+bind j select-pane -R
+
+
+# More scroll back
+set-option -g history-limit 10000
+
+# Turn on Mouse Mode
+set -g mouse on
+
+# - - - - - - - - - - - - - - - - - - - - - - - -
+#TMUX Plugins https://github.com/tmux-plugins/tpm
+# - - - - - - - - - - - - - - - - - - - - - - - -
+
+set -g @plugin 'tmux-plugins/tpm'
+# Sensible plugins
+set -g @plguin 'tmux-plugins/tmux-sensible'
+
+# - - - - - - - - -
+# Dracula Plugins
+# - - - - - - - - -
+set -g @plugin 'dracula/tmux'
+set -g @dracula-show-powerline true
+set -g @dracula-show-left-icon session
+set -g @dracula-plugins "cpu-usage ram-usage"
+
+
+
+
+
+
+run '~/.tmux/plugins/tpm/tpm'
+#+END_SRC
+** Git Config
+#+BEGIN_SRC conf
+[user]
+	email = eduardorobles@protonmail.com
+	name = Eduardo Robles
+	signingkey = ENTERKEYHERE
+#+END_SRC
+** Bash Aliases
+#+BEGIN_SRC conf
+alias emt="emacsclient -t"
+alias emc="emacsclient -c -a emacs"
+alias semacs="systemctl status --user emacs.service"
+alias remacs="systemctl restart --user emacs.service"
+#+END_SRC
+** bashrc additions
+#+BEGIN_SRC conf
+# Editor settings
+export ALTERNATE_EDITOR="emacs -nw"
+export EDITOR="emacsclient -t" #$EDITOR opens in terminal
+export VISUAL="emacsclient -c -a emacs" #$VISUAL opens in GUI mode
+
+# Unified Bash History
+shopt -s histappend
+PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
+
+
+# Start SSH Agent unless already running
+#if [ -z "$SSH_AUTH_SOCK" ] ; then
+#    eval `ssh-agent`
+#    ssh-add
+#fi
+#+END_SRC
+* Emacs
+** Init
+   =Borrowed/Inspired by: https://github.com/dieggsy/dotfiles/blob/master/emacs/.emacs.d/init.org=
+#+BEGIN_SRC emacs-lisp
+  ;;; -*- lexical-binding: t -*-
+
+  (require 'package)
+  (setq byte-compile-warnings '(cl-functions))
+  ;; Set package archives
+  ;;(setq package-check-signature nil)  ; because GNU ELPA keeps choking on the sigs
+  (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+  ;;(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/"))
+  (with-eval-after-load 'package (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+  (setq package-enable-at-startup nil)
+
+  (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
+
+  ;;Use-package
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
+
+  (setq use-package-verbose t)
+  (setq use-package-always-ensure t)
+  (eval-when-compile (require 'use-package))
+  (use-package auto-compile
+    :config (auto-compile-on-load-mode))
+  (setq load-prefer-newer t)
+  (unless (package-installed-p 'quelpa)
+    (with-temp-buffer
+      (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
+      (eval-buffer)
+      (quelpa-self-upgrade)))
+
+  (quelpa
+   '(quelpa-use-package
+     :fetcher git
+     :url "https://github.com/quelpa/quelpa-use-package.git"))
+  (require 'quelpa-use-package)
+
+  (setq frame-title-format '("Eduardo @ er-laptop")
+        frame-resize-pixelwise t)
+
+  (scroll-bar-mode -1)
+  (tool-bar-mode -1)
+  (show-paren-mode t)
+
+  (set-charset-priority 'unicode)
+  (setq locale-coding-system   'utf-8)
+  (set-terminal-coding-system  'utf-8)
+  (set-keyboard-coding-system  'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system        'utf-8)
+  (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+
+  (global-auto-revert-mode t)
+
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+  (global-visual-line-mode t)
+  (global-prettify-symbols-mode t)
+
+  (require 'org)
+  (org-babel-load-file (expand-file-name "~/.emacs.d/emacs.org"))
+  (custom-set-variables
+   ;; custom-set-variables was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   )
+  (custom-set-faces
+   ;; custom-set-faces was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   )
+#+END_SRC
+** Emacs Customization
+*** Startup Config
+#+BEGIN_SRC emacs-lisp
+(setq confirm-kill-emacs                  'y-or-n-p
+      confirm-nonexistent-file-or-buffer  t
+      require-final-newline               t
+      visible-bell                        nil
+      ring-bell-function                  'ignore
+      minibuffer-prompt-properties
+      '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt)
+
+      ;; Disable non selected window highlight
+      cursor-in-non-selected-windows     nil
+      highlight-nonselected-windows      nil
+      ;; PATH
+      exec-path                          (append exec-path '("/usr/local/bin/"))
+      indent-tabs-mode                   nil
+      inhibit-startup-message            t
+      fringes-outside-margins            t
+      x-select-enable-clipboard          t
+      create-lockfiles                   nil
+
+)
+#+END_SRC
+*** Environment Variables
+    To find environment variables simply:
+    - ~M-x: $SHELL~ for shell
+    - ~M-x: $GPG_AGENT_INFO~ for gpg
+    - ~M-x: $SSH_AUTH_SOCK~ for ssh
+#+BEGIN_SRC emacs-lisp
+(setenv "SHELL" "/bin/bash")
+;;(setenv "GPG_AGENT_INFO" "/run/user/1000/gnupg/S.gpg-agent:0:1")
+(setenv "SSH_AUTH_SOCK" "/run/user/1000/keyring/.ssh")
+#+END_SRC
+*** Backup Settings
+    Disable backups. Creates ugly junk on filesystem.
+#+BEGIN_SRC emacs-lisp
+(setq backup-inhibited t
+      make-backup-files nil
+      auto-save-default nil)
+#+END_SRC
+*** User Details
+ #+BEGIN_SRC emacs-lisp
+(setq user-full-name "Eduardo Robles"
+      user-mail-address "eduardorobles@proton.me")
+ #+END_SRC
+*** Auth sources
+#+BEGIN_SRC emacs-lisp
+  (setq epg-gpg-program "gpg2")
+  (require 'auth-source)
+  (setq
+  epa-file-encrypt-to user-mail-address
+  auth-sources (list (expand-file-name "~/.authinfo.gpg")))
+#+END_SRC
+** GUI Settings
+*** Window Settings
+#+BEGIN_SRC emacs-lisp
+;; Enlarge/Shrink Window
+(global-set-key (kbd "C-x J") 'shrink-window-horizontally)
+(global-set-key (kbd "C-x K") 'enlarge-window-horizontally)
+#+END_SRC
+*** Fonts
+#+BEGIN_SRC emacs-lisp
+;; if gui do something in whatver type of emacs instance we are using
+(defun apply-if-gui (&rest action)
+  "Do specified ACTION if we're in a gui regardless of daemon or not."
+  (if (daemonp)
+      (add-hook 'after-make-frame-functions
+                (lambda (frame)
+                  (select-frame frame)
+                  (if (display-graphic-p frame)
+                      (apply action))))
+    (if (display-graphic-p)
+        (apply action))))
+
+;; Default font (cant be font with hyphen in the name like Inconsolata-g)
+(setq initial-frame-alist '((font . "IBM Plex Mono")))
+(setq default-frame-alist '((font . "IBM Plex Mono")))
+
+;; respect default terminal fonts
+;; if we're in a gui set the fonts appropriately
+;; for daemon sessions and and nondaemons
+(apply-if-gui 'styling/set-backup-fonts)
+#+END_SRC
+
+*** All The Icons
+
+#+BEGIN_SRC emacs-lisp
+(use-package all-the-icons)
+
+(use-package all-the-icons-dired
+:config
+:hook (dired-mode . (lambda ()
+		     (interactive)
+		     (unless (file-remote-p default-directory)
+		       (all-the-icons-dired-mode)))))
+#+END_SRC
+*** Doom Themes
+#+BEGIN_SRC emacs-lisp
+(use-package doom-themes)
+(load-theme 'doom-dracula t)
+(defun er/load-doom-theme (theme)
+  "Disable active themes and load a Doom theme."
+  (interactive (list (intern (completing-read "Theme: "
+					      (->> (custom-available-themes)
+						   (-map #'symbol-name)
+						   (--select (string-prefix-p "doom-" it)))))))
+  (er/switch-theme theme)
+
+  (set-face-foreground 'org-indent (face-background 'default)))
+
+(defun er/switch-theme (theme)
+  "Disable active themes and load THEME."
+  (interactive (list (intern (completing-read "Theme: "
+					      (->> (custom-available-themes)
+						   (-map #'symbol-name))))))
+  (mapc #'disable-theme custom-enabled-themes)
+  (load-theme theme 'no-confirm))
+
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+#+END_SRC
+*** Doom Modeline
+#+BEGIN_SRC emacs-lisp
+(use-package doom-modeline
+  :init
+  (setq doom-modeline-bar-width                 3
+        doom-modeline-buffer-encoding           t
+        doom-modeline-enable-word-count         t
+        doom-modeline-height                    25
+        doom-modeline-icon                      t
+        doom-modeline-indent-info               nil
+        doom-modeline-lsp                       nil
+        doom-modeline-major-mode-color-icon     t
+        doom-modeline-major-mode-icon           t
+        doom-modeline-minor-modes               nil)
+  :config
+      (setq doom-modeline-icon                  t
+            doom-modeline-major-mode-icon       nil
+            doom-modeline-major-mode-color-icon nil)
+  (doom-modeline-mode))
+#+END_SRC
+*** Modeline Tweaks
+Primarily for when using Emacs on a laptop.
+#+BEGIN_SRC emacs-lisp
+(display-time-mode 1)
+(unless (string-match-p "^Power N/A" (battery))
+  (display-battery-mode 1))
+#+END_SRC
+
+*** Dashboard
+=Inspired/Borrowed by: https://www.reddit.com/r/emacs/comments/kkujqe/emacs_dashboard_configuration/=
+#+BEGIN_SRC emacs-lisp
+ ;; Read file as list of lines
+  (defun read-lines (filePath)
+    "Return a list of lines of a file at filePath."
+    (with-temp-buffer
+      (insert-file-contents filePath)
+      (split-string (buffer-string) "\n" t)))
+#+END_SRC
+=Inspired/Borrowed by:  https://skele.neocities.org/config.html=
+#+BEGIN_SRC emacs-lisp
+(use-package dashboard
+  :config
+  (dashboard-setup-startup-hook)
+  :custom
+  (dashboard-set-heading-icons t)
+  (dashboard-set-file-icons t)
+  (dashboard-items
+        '((bookmarks . 5)
+          (recents . 5)
+          (agenda . 10)))
+  (dashboard-startup-banner "~/.emacs.d/banners/4.txt")
+  (dashboard-center-content t)
+  (dashboard-show-shortcuts t)
+  (dashboard-set-init-info t)
+  (dashboard-set-footer t)
+  (dashboard-footer-messages
+        (read-lines "~/Documents/notes/quotes.org"))
+  (dashboard-set-navigator t)
+  (dashboard-navigator-buttons
+        `(;; line1
+          ((,nil
+            "Config"
+            "Open config file for easy editing"
+            (lambda (&rest _) (find-file "~/.emacs.d/emacs.org"))
+            'default)
+           )
+          ;; line 2
+          ((,nil
+            "Elfeed"
+            "Read RSS/Atom feeds with Elfeed"
+            (lambda (&rest _) (elfeed))
+            'default)
+           )
+          ;; line 3
+          ((,nil
+            "Terminal"
+            "Open vterm"
+            (lambda (&rest _) (vterm))
+            'default)
+           (nil
+            "Dired"
+            "Manage files with dired"
+            (lambda (&rest _) (dired "~/"))
+            'default)))))
+    ;;Make dashboard work in emacs -nw
+    (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+#+END_SRC
+** Packages Setup
+*** Vterm
+#+BEGIN_SRC emacs-lisp
+(use-package vterm
+     :ensure t)
+#+END_SRC
+*** Flycheck
+#+BEGIN_SRC emacs-lisp
+(use-package flycheck
+  :hook ((prog-mode . flycheck-mode)
+         (markdown-mode . flycheck-mode)
+         (org-mode . flycheck-mode))
+  :config
+  (setq flycheck-check-syntax-automatically '(save mode-enabled newline))
+  (setq flycheck-display-errors-delay 0.1)
+    (setq flycheck-checker-error-threshold 1000)
+  (setq flycheck-indication-mode nil)
+  (define-key flycheck-mode-map (kbd "<f8>") #'flycheck-next-error)
+  (define-key flycheck-mode-map (kbd "S-<f8>") #'flycheck-previous-error))
+#+END_SRC
+*** Flyspell
+#+BEGIN_SRC emacs-lisp
+(use-package flyspell
+  :ensure nil
+  :hook ((markdown-mode . flyspell-mode)
+         (org-mode      . flyspell-mode))
+  :config
+  (setq ispell-program-name "/usr/bin/aspell"))
+#+END_SRC
+
+*** Company
+#+BEGIN_SRC emacs-lisp
+(use-package company
+  :config
+  (add-hook 'after-init-hook 'global-company-mode))
+#+END_SRC
+
+*** Helm
+#+BEGIN_SRC emacs-lisp
+(use-package helm
+  :init
+  (require 'helm-config)
+  :config
+  (setq helm-split-window-in-side-p t
+        helm-split-window-default-side 'below
+	helm-idle-delay 0.0
+	helm-input-idle-delay 0.01
+	helm-quick-update t
+	helm-ff-skip-boring-files t)
+  (helm-mode 1)
+  :bind (("M-x" . helm-M-x)
+         ("C-x C-m" . helm-M-x)
+         ("C-x C-f" . helm-find-files)
+         ("C-x v" . helm-projectile)
+         ("C-x c o" . helm-occur)
+         ("C-x c p" . helm-projectile-ag)
+         ("C-x c k" . helm-show-kill-ring)
+         :map helm-map
+         ("<tab>" . helm-execute-persistent-action)))
+#+END_SRC
+
+*** Linum: line numbers
+#+BEGIN_SRC emacs-lisp
+(use-package linum
+  :config
+  (setq linum-format " %3d ")
+  (global-linum-mode nil))
+#+END_SRC
+
+*** Rainbow Mode
+#+BEGIN_SRC emacs-lisp
+(use-package rainbow-mode
+  :init
+  (define-globalized-minor-mode global-rainbow-mode rainbow-mode rainbow-mode))
+#+END_SRC
+
+*** Magit
+#+BEGIN_SRC emacs-lisp
+(use-package magit
+  :bind
+  ;; Magic
+  ("C-x g s" . magit-status)
+  ("C-x g x" . magit-checkout)
+  ("C-x g c" . magit-commit)
+  ("C-x g p" . magit-push)
+  ("C-x g u" . magit-pull)
+  ("C-x g e" . magit-ediff-resolve)
+  ("C-x g r" . magit-rebase-interactive))
+
+(use-package magit-popup)
+#+END_SRC
+
+*** Org
+**** Org-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package org
+     :bind
+          ("C-c l" . org-store-link)
+          ("C-c a" . org-agenda)
+          ("C-c c" . org-capture))
+  (require 'ox-html)
+  (require 'ox-latex)
+  (require 'ox-md)
+  (require 'ox-hugo)
+  ;;(require 'ox-reveal)
+#+END_SRC
+**** Org-bullets
+#+BEGIN_SRC emacs-lisp
+(use-package org-bullets
+  :config
+  (setq org-hide-leading-stars t)
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (org-bullets-mode t))))(use-package org-bullets)
+#+END_SRC
+
+**** Org-babel
+#+BEGIN_SRC emacs-lisp
+(define-advice org-babel-execute-src-block (:before (&rest _) d/load-lang)
+ "Load src language on demand.
+
+This removes the need to add every language manually to
+`org-babel-load-languages'. This also implies that any language
+that supports execution can be executed. Executing src blocks is
+an active enough action that I'm ok with this."
+ (let ((language (intern
+		  (org-element-property :language (org-element-at-point)))))
+   (message "LANG: %s" language)
+   (pcase language
+     ('sh (setq language 'shell))
+     ('C++ (setq language 'C)))
+   (message "LANG: %s" language)
+   (unless (alist-get language org-babel-load-languages)
+     (add-to-list 'org-babel-load-languages (cons language t))
+     (org-babel-do-load-languages
+      'org-babel-load-languages
+      org-babel-load-languages))))
+#+END_SRC
+
+**** Org-agenda
+***** TODO Consolidate templates for capture templates
+#+BEGIN_SRC emacs-lisp
+        (setq org-directory "~/Documents/notes/"
+              org-agenda-files '("~/Documents/notes/log.org" "~/Documents/notes/mobile.org")
+              ;;org-archive-location "~/Documents/notes/"
+              org-capture-templates
+              '(("t" "Todo" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/todo1.org"))
+                ("n" "Note" entry (file+headline "~/Documents/notes/notes.org" "Notes")(file "~/.emacs.d/templates/notes.orgcaptmpl"))
+                ("b" "Bullet" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/bullet.orgcaptmpl"))
+                ("d" "Deadline" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/deadline.org"))
+                ("e" "Blog" entry (file+olp "~/Projects/eduarorobles_blog/content/blog.org" "Drafts")(function org-hugo-new-subtree-post-capture-template)))
+              org-log-done (quote time)
+              org-todo-keywords '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)" "INCOMPLETE(x)"))
+              org-refile-targets '(("~/Documents/notes/archive.org" :maxlevel . 3)(org-agenda-files :maxlevel . 3)))
+
+    (setq org-agenda-custom-commands
+          '(("o" "Overview"
+             ((agenda "" ((org-agenda-span 7)                      ;; overview of appointments
+                          (org-agenda-start-on-weekday nil)         ;; calendar begins today
+                          (org-agenda-repeating-timestamp-show-all t)
+                          (org-agenda-entry-types '(:timestamp :sexp))))
+              (agenda "" ((org-agenda-span 1)                      ; daily agenda
+                          (org-deadline-warning-days 7)            ; 7 day advanced warning for deadlines
+                          (org-agenda-todo-keyword-format "[ ]")
+                          (org-agenda-scheduled-leaders '("" ""))
+                          (org-agenda-prefix-format "%t%s")))
+              (todo "TODO"                                          ;; todos sorted by context
+                    ((org-agenda-prefix-format "[ ] %T: ")
+                     (org-agenda-sorting-strategy '(tag-up))
+                     (org-agenda-todo-keyword-format "--")
+                    (org-agenda-overriding-header "\nTasks by Context\n------------------\n"))))
+             ((org-agenda-compact-blocks t))
+             ("~/Documents/notes/agenda.html"))
+            ;; other commands go here
+            ))
+#+END_SRC
+**** Org-mode settings
+#+BEGIN_SRC emacs-lisp
+(setq org-confirm-babel-evaluate nil
+  org-startup-indented t
+  org-insert-heading-respect-content t
+  org-src-window-setup 'current-window
+  org-export-in-background nil
+  org-export-with-author nil
+  org-export-babel-evaluate nil
+  org-html-validation-link nil
+  org-confirm-babel-evaluate nil
+  org-src-tab-acts-natively t
+  org-log-into-drawer t
+  org-confirm-elisp-link-function 'y-or-n-p)
+#+END_SRC
+
+**** Org Journal
+#+BEGIN_SRC emacs-lisp
+  (use-package org-journal
+  :ensure t
+  :custom
+  (org-journal-dir "~/Org/journal/")
+  (org-journal-file-type 'weekly)
+  (org-journal-file-format "%Y%m%d.org")
+  (org-journal-time-prefix "*** ")
+  )
+
+  (setq org-journal-enable-agenda-integration t)
+
+  (defun org-journal-find-location ()
+    ;; Open today's journal, but specify a non-nil prefix argument in order to
+    ;; inhibit inserting the heading; org-capture will insert the heading.
+    (org-journal-new-entry t)
+    (unless (eq org-journal-file-type 'daily)
+      (org-narrow-to-subtree))
+    (goto-char (point-max)))
+
+;;  (setq org-capture-templates '(("i" "incident" plain (function org-journal-find-location)(file "~/.emacs.d/templates/incident.org"):jump-to-captured t :immediate-finish t)
+;;        ("r" "request" plain (function org-journal-find-location)(file "~/.emacs.d/templates/request.org"):jump-to-captured t :immediate-finish t)))
+#+END_SRC
+
+*** org-msg
+#+BEGIN_SRC emacs-lisp
+(use-package org-msg)
+#+END_SRC
+
+*** Demo-it
+#+BEGIN_SRC emacs-lisp
+(use-package demo-it)
+#+END_SRC
+
+*** Org Tree Slide
+#+BEGIN_SRC emacs-lisp
+(use-package org-tree-slide)
+#+END_SRC
+*** Elfeed
+#+BEGIN_SRC emacs-lisp
+  ;; Load elfeed
+  (use-package elfeed
+    :ensure t
+    :config
+(setq elfeed-use-curl t)
+(elfeed-set-timeout 36000)
+;;(setq elfeed-curl-extra-arguments '("--insecure")))
+
+  ;; Load elfeed-org
+  (use-package elfeed-org
+    :ensure t
+    :config
+    (elfeed-org)
+    (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org"))
+    )
+
+  ;; Load elfeed-goodies
+  (use-package elfeed-goodies
+    :ensure t
+    )
+
+  (require 'elfeed)
+  (require 'elfeed-goodies)
+
+  (elfeed-goodies/setup)
+#+END_SRC
+
+*** Page Break Lines
+#+BEGIN_SRC emacs-lisp
+(use-package page-break-lines)
+#+END_SRC
+
+*** Smartparens
+#+BEGIN_SRC emacs-lisp
+(use-package smartparens)
+
+(use-package smex)
+#+END_SRC
+
+*** Which Key
+#+BEGIN_SRC emacs-lisp
+(use-package which-key
+  :config
+  (which-key-mode))
+#+END_SRC
+
+*** Wgrep and Yasnippet
+#+BEGIN_SRC emacs-lisp
+(use-package wgrep)
+
+(use-package yasnippet
+  :config
+  (yas-global-mode 1))
+#+END_SRC
+
+*** HTMLIZE
+#+BEGIN_SRC emacs-lisp
+(use-package htmlize)
+#+END_SRC
+
+*** Tramp
+#+BEGIN_SRC emacs-lisp
+(setq tramp-default-method "ssh")
+#+END_SRC
+
+*** Emoji
+#+BEGIN_SRC emacs-lisp
+(use-package emojify)
+#+END_SRC
+
+*** JSON mode
+#+BEGIN_SRC emacs-lisp
+(use-package json-mode
+  :mode "\\.json\\'")
+#+END_SRC
+
+*** Markdown mode
+#+BEGIN_SRC emacs-lisp
+(use-package markdown-mode
+  :hook (markdown-mode . auto-fill-mode)
+  :config
+  (set-face-attribute 'markdown-code-face nil :inherit 'org-block))(use-package markdown-mode
+  :mode "\\.md\\'")
+#+END_SRC
+
+*** PDF tools
+#+BEGIN_SRC emacs-lisp
+(use-package pdf-tools
+  :mode (("\\.pdf\\'" . pdf-view-mode))
+  :config
+  (pdf-loader-install))
+#+END_SRC
+
+*** YAML mode
+#+BEGIN_SRC emacs-lisp
+(use-package yaml-mode
+  :mode "\\.yml\\'")
+#+END_SRC
+
+*** Touch typing
+#+BEGIN_SRC emacs-lisp
+(use-package speed-type)
+#+END_SRC
+*** Emms
+Emms music player
+#+BEGIN_SRC emacs-lisp
+(use-package emms
+  :bind
+   (("C-c M-e g"   . emms-play-directory)
+   ("C-c M-e d"   . emms-play-dired)
+   ("C-c M-e v"   . emms-playlist-mode-go)
+   ("C-c M-e x"   . emms-start)
+   ("C-c M-e SPC" . emms-pause)
+   ("C-c M-e s"   . emms-stop)
+   ("C-c M-e n"   . emms-next)
+   ("C-c M-e p"   . emms-previous)
+   ("C-c M-e e"   . emms-play-file)
+   ("C-c M-e h"   . emms-shuffle)
+   ("C-c M-e r"   . emms-toggle-repeat-track)
+   ("C-c M-e R"   . emms-toggle-repeat-playlist)
+   ("C-c M-e >"   . emms-seek-forward)
+   ("C-c M-e <"   . emms-seek-backward)
+   ("C-c M-e f"   . emms-show))
+  :init
+  (add-hook 'emms-player-started-hook 'emms-show)
+  (setq emms-show-format "Playing: %s"
+        emms-source-file-default-directory "~/Music/"
+        emms-track-description-function 'emms-track-simple-description)
+  :config
+ (emms-standard)
+ (emms-default-players)
+)
+#+END_SRC
+
+*** Streaming
+Play online streams including Youtube
+Shamelessy stolen function from:
+https://github.com/howardabrams/dot-files/blob/master/emacs-emms.org
+
+#+BEGIN_SRC emacs-lisp
+(defun play-freecodecamp-radio ()
+   "Play Freecodecamp Radio"
+   (interactive)
+   (emms-play-streamlist "https://coderadio-admin.freecodecamp.org/public/coderadio/playlist/pls"))
+
+(defun play-chilledcow ()
+"Play Chilledcow on YT"
+ (interactive)
+ (emms-play-url "https://www.youtube.com/watch?v=hHW1oY26kxQ"))
+#+END_SRC
+
+=Add following to mpv.conf file to play without window in MPV to play youtube streams=
+~--no-video~
+
+*** Hugo
+#+BEGIN_SRC emacs-lisp
+(use-package ox-hugo
+  :ensure t            ;Auto-install the package from Melpa (optional)
+  :after ox)
+#+END_SRC
+
+**** Capture Templates for Ox-Hugo
+See https://ox-hugo.scripter.co/doc/org-capture-setup/
+#+BEGIN_SRC emacs-lisp
+(defun org-hugo-new-subtree-post-capture-template ()
+  (let* (
+         (date (format-time-string (org-time-stamp-format :long :inactive) (org-current-time)))
+         (title (read-from-minibuffer "Post Title: ")) ;Prompt to enter the post title
+         (fname (org-hugo-slug title)))
+    (mapconcat #'identity
+               `(
+                 ,(concat "** TODO " title)
+                 ":PROPERTIES:"
+                 ,(concat ":EXPORT_FILE_NAME: " fname)
+                 ":END:"
+                 "%?\n")                ;Place the cursor here finally
+               "\n")))
+#+END_SRC
+
+*** SSH Config
+#+BEGIN_SRC emacs-lisp
+(use-package ox-ssh
+:ensure t
+:aftger ox)
+*** somafm.el
+#+BEGIN_SRC emacs-lisp
+  (use-package somafm
+  :ensure t)
+#+END_SRC
+
+* Other
+
+** Quotes
+#+begin_quote
+“Waste no more time arguing what a good man should be. Be One.” – Marcus Aurelius
+“Think of the life you have lived until now as over and, as a dead man, see what’s left as a bonus and live it according to Nature. Love the hand that fate deals you and play it as your own, for what could be more fitting?” – Marcus Aurelius
+“It never ceases to amaze me: we all love ourselves more than other people, but care more about their opinion than our own.” – Marcus Aurelius
+“In your actions, don’t procrastinate. In your conversations, don’t confuse. In your thoughts, don’t wander. In your soul, don’t be passive or aggressive. In your life, don’t be all about business.” – Marcus Aurelius
+“If it is not right, do not do it, if it is not true, do not say it.” – Marcus Aurelius
+“He who fears death will never do anything worth of a man who is alive.” – Seneca
+“Life is very short and anxious for those who forget the past, neglect the present, and fear the future.” – Seneca
+
+#+end_quote
+
+** Elfeed RSS Feeds
+:PROPERTIES:
+:EXPORT_FILE_NAME: elfeed.org
+:END:
+*** Blogs                                                          :elfeed:
+*** https://eduardorobles.com/index.xml                              :blog:
+*** https://opensource.com/feed                                     :Linux:
+*** https://solar.lowtechmagazine.com/feeds/all-en.atom.xml     :GreenTech:
+*** [[https://xvrdm.github.io/index.xml][Invalid Input - Datascience Journal]]                             :emacs:
+*** [[https://thagomizer.com/atom.xml][thagomizer.com]]                                             :OpenSource:
+*** [[https://thenextweb.com/feed][The Next Web]]                                                :GreenTech:
+*** [[https://devblogs.microsoft.com/landingpage/][Microsoft Developers Blogs]]
+*** [[https://github.com/alexnathanson/solar-protocol/releases.atom][Solar Protocol - Github Releases]]
+*** [[https://blog.cloudflare.com/rss/][Cloudflare Blog]]
+** Banners
+*** 1
+:PROPERTIES:
+:EXPORT_FILE_NAME: 1.txt
+:END:
+░▀█▀░█▀█░█▀▀░█▀█░█▀▀░▄▀░░█░░░▀█▀░█▀█░█░█░█░█
+░░█░░█▀█░█░░░█░█░▀▀█░▄█▀░█░░░░█░░█░█░█░█░▄▀▄
+░░▀░░▀░▀░▀▀▀░▀▀▀░▀▀▀░░▀▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀░▀
+*** 2
+:PROPERTIES:
+:EXPORT_FILE_NAME: 2.txt
+:END:
+ ______                                   ____     __
+/\__  _\                                /|  _ \   /\ \       __
+\/_/\ \/    __      ___    ___     ____ |/\   |   \ \ \     /\_\    ___   __  __  __  _
+   \ \ \  /'__`\   /'___\ / __`\  /',__\ \// __`\/\\ \ \  __\/\ \ /' _ `\/\ \/\ \/\ \/'\
+    \ \ \/\ \L\.\_/\ \__//\ \L\ \/\__, `\/|  \L>  <_\ \ \L\ \\ \ \/\ \/\ \ \ \_\ \/>  </
+     \ \_\ \__/.\_\ \____\ \____/\/\____/| \_____/\/ \ \____/ \ \_\ \_\ \_\ \____//\_/\_\
+      \/_/\/__/\/_/\/____/\/___/  \/___/  \/____/\/   \/___/   \/_/\/_/\/_/\/___/ \//\/_/
+*** 3
+:PROPERTIES:
+:EXPORT_FILE_NAME: 3.txt
+:END:
+ ______                    ____      __   _
+/_  __/__ ________  ___   / __/___  / /  (_)__  __ ____ __
+ / / / _ `/ __/ _ \(_-<   > _/_ _/ / /__/ / _ \/ // /\ \ /
+/_/  \_,_/\__/\___/___/  |_____/  /____/_/_//_/\_,_//_\_\
+
+*** 4
+:PROPERTIES:
+:EXPORT_FILE_NAME: 4.txt
+:END:
+
+████████╗ █████╗  ██████╗ ██████╗ ███████╗     █████╗ ███╗   ██╗██████╗     ██╗     ██╗███╗   ██╗██╗   ██╗██╗  ██╗
+╚══██╔══╝██╔══██╗██╔════╝██╔═══██╗██╔════╝    ██╔══██╗████╗  ██║██╔══██╗    ██║     ██║████╗  ██║██║   ██║╚██╗██╔╝
+   ██║   ███████║██║     ██║   ██║███████╗    ███████║██╔██╗ ██║██║  ██║    ██║     ██║██╔██╗ ██║██║   ██║ ╚███╔╝
+   ██║   ██╔══██║██║     ██║   ██║╚════██║    ██╔══██║██║╚██╗██║██║  ██║    ██║     ██║██║╚██╗██║██║   ██║ ██╔██╗
+   ██║   ██║  ██║╚██████╗╚██████╔╝███████║    ██║  ██║██║ ╚████║██████╔╝    ███████╗██║██║ ╚████║╚██████╔╝██╔╝ ██╗
+   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝     ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝
+
+*** tacosandlinux.png
