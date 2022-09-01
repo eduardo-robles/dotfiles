@@ -35,6 +35,22 @@ WantedBy=default.target
   ~systemctl --user restart emacs~
 - Launch Emacs with:
   ~emacsclient -t~ or ~emacsclient -c -a~
+*** Emacs Client Desktop Entry
+#+BEGIN_SRC conf
+[Desktop Entry]
+Name=Emacs Client
+GenericName=Text Editor
+Comment=A flexible platform for end-user applications
+MimeType=text/english;text/plain;text/x-makefile;text/x-c++hdr;text/x-c++src;text/x-chdr;text/x-csrc;text/x-java;text/x-moc;text/x-pascal;text/x-tcl;text/x-tex;application/x-shellscript;text/x-c;text/x-c++;
+Exec=emacsclient -create-frame --alternate-editor="" --no-wait %F
+Icon=/home/erobles/Pictures/tacosandlinux.png
+Type=Application
+Terminal=false
+Categories=TextEditor;Utility;
+StartupWMClass=Emacs
+Keywords=Text;Editor;
+X-KDE-StartupNotify=false
+#+END_SRC
 ** SSH Agent
 *** Systemd
 ** Screen
