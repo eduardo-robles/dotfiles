@@ -26,20 +26,13 @@ emacs and never looked back.
 :CUSTOM_ID: connect-with-me
 :align: left
 :END:
-#+ATTR_HTML: :width 300
-[[https://twitter.com/tacosandlinux][https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/twitter.svg]]
-#+ATTR_HTML: :width 300
-[[https://linkedin.com/in/hello-im-eduardo][https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg]]
-#+ATTR_HTML: :width 300
-[[https://www.eduardorobles.com/index.xml][https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/rss.svg]]
+- Twitter :bird:  https://twitter.com/tacosandlinux
+- LinkedIn :linked_paperclips:  https://linkedin.com/in/hello-im-eduardo
+- RSS :spider-web:  https://www.eduardorobles.com/index.xml
 
 *** Support:
 :PROPERTIES:
 :CUSTOM_ID: support
 :align: left
 :END:
-#+ATTR_HTML: :width 300
-[[https://www.buymeacoffee.com/eduardorobles][https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png]]
-
-\\
-\\
+[[https://ko-fi.com/G2G6S2IC][https://ko-fi.com/img/githubbutton_sm.svg]]
