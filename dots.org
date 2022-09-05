@@ -364,7 +364,8 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
 		       (all-the-icons-dired-mode)))))
 #+END_SRC
 *** Doom Themes
-#+BEGIN_SRC emacs-lisp
+/Commenting out to set Catpuccin theme/
+#+BEGIN_COMMENT
 (use-package doom-themes)
 (load-theme 'doom-dracula t)
 (defun er/load-doom-theme (theme)
@@ -386,7 +387,7 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
   (load-theme theme 'no-confirm))
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-#+END_SRC
+#+END_COMMENT
 *** Doom Modeline
 #+BEGIN_SRC emacs-lisp
 (use-package doom-modeline
