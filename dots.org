@@ -982,8 +982,7 @@ an active enough action that I'm ok with this."
 (use-package markdown-mode
   :hook (markdown-mode . auto-fill-mode)
   :config
-  (set-face-attribute 'markdown-code-face nil :inherit 'org-block))(use-package markdown-mode
-  :mode "\\.md\\'")
+  (set-face-attribute 'markdown-code-face nil :inherit 'org-block))
 #+END_SRC
 
 *** PDF tools
@@ -1084,7 +1083,7 @@ See https://ox-hugo.scripter.co/doc/org-capture-setup/
 #+BEGIN_SRC emacs-lisp
 (use-package ox-ssh
 :ensure t
-:aftger ox)
+:after ox)
 *** somafm.el
 #+BEGIN_SRC emacs-lisp
   (use-package somafm
