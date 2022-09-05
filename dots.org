@@ -781,7 +781,7 @@ Primarily for when using Emacs on a laptop.
   (setq org-hide-leading-stars t)
   (add-hook 'org-mode-hook
             (lambda ()
-              (org-bullets-mode t))))(use-package org-bullets)
+              (org-bullets-mode t))))
 #+END_SRC
 
 **** Org-babel
