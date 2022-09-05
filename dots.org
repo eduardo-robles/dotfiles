@@ -228,8 +228,7 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
      :url "https://github.com/quelpa/quelpa-use-package.git"))
   (require 'quelpa-use-package)
 
-  (setq frame-title-format '("Eduardo @ er-laptop")
-        frame-resize-pixelwise t)
+
 
   (scroll-bar-mode -1)
   (tool-bar-mode -1)
