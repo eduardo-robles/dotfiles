@@ -349,7 +349,7 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
 ;; respect default terminal fonts
 ;; if we're in a gui set the fonts appropriately
 ;; for daemon sessions and and nondaemons
-(apply-if-gui 'styling/set-backup-fonts)
+;;(apply-if-gui 'styling/set-backup-fonts)
 #+END_SRC
 
 *** All The Icons
@@ -393,7 +393,7 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
   (use-package catppuccin-theme
    :config
    (setq catppuccin-height-title1 1.5))
-  (load-theme 'catpuccin t)
+  (load-theme 'catppuccin t)
 #+END_SRC
 *** Doom Modeline
 #+BEGIN_COMMENT
@@ -1084,6 +1084,7 @@ See https://ox-hugo.scripter.co/doc/org-capture-setup/
 (use-package ox-ssh
 :ensure t
 :after ox)
+#+END_SRC
 *** somafm.el
 #+BEGIN_SRC emacs-lisp
   (use-package somafm
