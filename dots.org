@@ -190,79 +190,82 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
 ** Init
    =Borrowed/Inspired by: https://github.com/dieggsy/dotfiles/blob/master/emacs/.emacs.d/init.org=
 #+BEGIN_SRC emacs-lisp
-  ;;; -*- lexical-binding: t -*-
+    ;;; -*- lexical-binding: t -*-
 
-  (require 'package)
-  (setq byte-compile-warnings '(cl-functions))
-  ;; Set package archives
-  ;;(setq package-check-signature nil)  ; because GNU ELPA keeps choking on the sigs
-  (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-  ;;(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/"))
-  (with-eval-after-load 'package (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-  (setq package-enable-at-startup nil)
+    (require 'package)
+    (setq byte-compile-warnings '(cl-functions))
+    ;; Set package archives
+    ;;(setq package-check-signature nil)  ; because GNU ELPA keeps choking on the sigs
+    (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
+    (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+    ;;(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/"))
+    (with-eval-after-load 'package (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+    (setq package-enable-at-startup nil)
 
-  (package-initialize)
-  (unless package-archive-contents
-    (package-refresh-contents))
+    (package-initialize)
+    (unless package-archive-contents
+      (package-refresh-contents))
 
-  ;;Use-package
-  (unless (package-installed-p 'use-package)
-    (package-install 'use-package))
+    ;;Use-package
+    (unless (package-installed-p 'use-package)
+      (package-install 'use-package))
 
-  (setq use-package-verbose t)
-  (setq use-package-always-ensure t)
-  (eval-when-compile (require 'use-package))
-  (use-package auto-compile
-    :config (auto-compile-on-load-mode))
-  (setq load-prefer-newer t)
-  (unless (package-installed-p 'quelpa)
-    (with-temp-buffer
-      (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
-      (eval-buffer)
-      (quelpa-self-upgrade)))
+    (setq use-package-verbose t)
+    (setq use-package-always-ensure t)
+    (eval-when-compile (require 'use-package))
+    (use-package auto-compile
+      :config (auto-compile-on-load-mode))
+    (setq load-prefer-newer t)
+    (unless (package-installed-p 'quelpa)
+      (with-temp-buffer
+        (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
+        (eval-buffer)
+        (quelpa-self-upgrade)))
 
-  (quelpa
-   '(quelpa-use-package
-     :fetcher git
-     :url "https://github.com/quelpa/quelpa-use-package.git"))
-  (require 'quelpa-use-package)
+    (quelpa
+     '(quelpa-use-package
+       :fetcher git
+       :url "https://github.com/quelpa/quelpa-use-package.git"))
+    (require 'quelpa-use-package)
 
 
+  ;;From lambda.cx blog
+  ;;https://blog.lambda.cx/posts/eamacs-improved-frame-title/
+  (setq frame-title-format '("%b@" (:eval (or (file-remote-p default-directory 'host) system-name)) " — Emacs"))
 
-  (scroll-bar-mode -1)
-  (tool-bar-mode -1)
-  (show-paren-mode t)
+    (scroll-bar-mode -1)
+    (tool-bar-mode -1)
+    (show-paren-mode t)
 
-  (set-charset-priority 'unicode)
-  (setq locale-coding-system   'utf-8)
-  (set-terminal-coding-system  'utf-8)
-  (set-keyboard-coding-system  'utf-8)
-  (set-selection-coding-system 'utf-8)
-  (prefer-coding-system        'utf-8)
-  (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+    (set-charset-priority 'unicode)
+    (setq locale-coding-system   'utf-8)
+    (set-terminal-coding-system  'utf-8)
+    (set-keyboard-coding-system  'utf-8)
+    (set-selection-coding-system 'utf-8)
+    (prefer-coding-system        'utf-8)
+    (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
-  (global-auto-revert-mode t)
+    (global-auto-revert-mode t)
 
-  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+    (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
-  (global-visual-line-mode t)
-  (global-prettify-symbols-mode t)
+    (global-visual-line-mode t)
+    (global-prettify-symbols-mode t)
 
-  (require 'org)
-  (org-babel-load-file (expand-file-name "~/.emacs.d/emacs.org"))
-  (custom-set-variables
-   ;; custom-set-variables was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-   )
-  (custom-set-faces
-   ;; custom-set-faces was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-   )
+    (require 'org)
+    (org-babel-load-file (expand-file-name "~/.emacs.d/emacs.org"))
+    (custom-set-variables
+     ;; custom-set-variables was added by Custom.
+     ;; If you edit it by hand, you could mess it up, so be careful.
+     ;; Your init file should contain only one such instance.
+     ;; If there is more than one, they won't work right.
+     )
+    (custom-set-faces
+     ;; custom-set-faces was added by Custom.
+     ;; If you edit it by hand, you could mess it up, so be careful.
+     ;; Your init file should contain only one such instance.
+     ;; If there is more than one, they won't work right.
+     )
 #+END_SRC
 ** Emacs Customization
 *** Startup Config
