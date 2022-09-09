@@ -818,7 +818,7 @@ an active enough action that I'm ok with this."
                 ("n" "Note" entry (file+headline "~/Documents/notes/notes.org" "Notes")(file "~/.emacs.d/templates/notes.orgcaptmpl"))
                 ("b" "Bullet" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/bullet.orgcaptmpl"))
                 ("d" "Deadline" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/deadline.org"))
-                ("e" "Blog" entry (file+olp "~/Projects/eduarorobles_blog/content/blog.org" "Drafts")(function org-hugo-new-subtree-post-capture-template)))
+                ("e" "Blog" entry (file+olp "~/Projects/eduardorobles_blog/content/blog.org" "Drafts")(function org-hugo-new-subtree-post-capture-template)))
               org-log-done (quote time)
               org-todo-keywords '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)" "INCOMPLETE(x)"))
               org-refile-targets '(("~/Documents/notes/archive.org" :maxlevel . 3)(org-agenda-files :maxlevel . 3)))
