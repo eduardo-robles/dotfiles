@@ -1,6 +1,6 @@
 #+TITLE: Literate Dotfile Configuration
 #+AUTHOR: Eduardo Robles
-#+DATE: 09-01-2022
+#+DATE: 11-16-2022
 #+EMAIL: eduardorobles@proton.me
 #+OPTIONS: num:nil html-style:nil
 
@@ -139,13 +139,19 @@ set -g @plugin 'tmux-plugins/tpm'
 # Sensible plugins
 set -g @plguin 'tmux-plugins/tmux-sensible'
 
+# - - - - - - - -
+# Catppuccin Theme
+# - - - - - - - -
+set -g @plugin 'catppuccin/tmux'
+set -g @catppuccin_flavour 'mocha'
+
 # - - - - - - - - -
 # Dracula Plugins
 # - - - - - - - - -
-set -g @plugin 'dracula/tmux'
-set -g @dracula-show-powerline true
-set -g @dracula-show-left-icon session
-set -g @dracula-plugins "cpu-usage ram-usage"
+#set -g @plugin 'dracula/tmux'
+#set -g @dracula-show-powerline true
+#set -g @dracula-show-left-icon session
+#set -g @dracula-plugins "cpu-usage ram-usage"
 
 
 
@@ -345,11 +351,6 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
 ;; Default font (cant be font with hyphen in the name like Inconsolata-g)
 (setq initial-frame-alist '((font . "IBM Plex Mono")))
 (setq default-frame-alist '((font . "IBM Plex Mono")))
-
-;; respect default terminal fonts
-;; if we're in a gui set the fonts appropriately
-;; for daemon sessions and and nondaemons
-;;(apply-if-gui 'styling/set-backup-fonts)
 #+END_SRC
 
 *** All The Icons
@@ -363,31 +364,6 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
 		     (unless (file-remote-p default-directory)
 		       (all-the-icons-dired-mode)))))
 #+END_SRC
-*** Doom Themes
-/Commenting out to set Catpuccin theme/
-#+BEGIN_COMMENT
-(use-package doom-themes)
-(load-theme 'doom-dracula t)
-(defun er/load-doom-theme (theme)
-  "Disable active themes and load a Doom theme."
-  (interactive (list (intern (completing-read "Theme: "
-					      (->> (custom-available-themes)
-						   (-map #'symbol-name)
-						   (--select (string-prefix-p "doom-" it)))))))
-  (er/switch-theme theme)
-
-  (set-face-foreground 'org-indent (face-background 'default)))
-
-(defun er/switch-theme (theme)
-  "Disable active themes and load THEME."
-  (interactive (list (intern (completing-read "Theme: "
-					      (->> (custom-available-themes)
-						   (-map #'symbol-name))))))
-  (mapc #'disable-theme custom-enabled-themes)
-  (load-theme theme 'no-confirm))
-
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-#+END_COMMENT
 *** Catpuccin Theme
 #+BEGIN_SRC emacs-lisp
   (use-package catppuccin-theme
@@ -395,26 +371,7 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
    (setq catppuccin-height-title1 1.5))
   (load-theme 'catppuccin t)
 #+END_SRC
-*** Doom Modeline
-#+BEGIN_COMMENT
-(use-package doom-modeline
-  :init
-  (setq doom-modeline-bar-width                 3
-        doom-modeline-buffer-encoding           t
-        doom-modeline-enable-word-count         t
-        doom-modeline-height                    25
-        doom-modeline-icon                      t
-        doom-modeline-indent-info               nil
-        doom-modeline-lsp                       nil
-        doom-modeline-major-mode-color-icon     t
-        doom-modeline-major-mode-icon           t
-        doom-modeline-minor-modes               nil)
-  :config
-      (setq doom-modeline-icon                  t
-            doom-modeline-major-mode-icon       nil
-            doom-modeline-major-mode-color-icon nil)
-  (doom-modeline-mode))
-#+END_COMMENT
+
 *** Doom Modeline
 #+BEGIN_SRC emacs-lisp
 (use-package doom-modeline
@@ -608,67 +565,25 @@ Primarily for when using Emacs on a laptop.
 (unless (string-match-p "^Power N/A" (battery))
   (display-battery-mode 1))
 #+END_SRC
-
-*** Dashboard
-=Inspired/Borrowed by: https://www.reddit.com/r/emacs/comments/kkujqe/emacs_dashboard_configuration/=
-#+BEGIN_SRC emacs-lisp
- ;; Read file as list of lines
-  (defun read-lines (filePath)
-    "Return a list of lines of a file at filePath."
-    (with-temp-buffer
-      (insert-file-contents filePath)
-      (split-string (buffer-string) "\n" t)))
-#+END_SRC
-=Inspired/Borrowed by:  https://skele.neocities.org/config.html=
-#+BEGIN_SRC emacs-lisp
-(use-package dashboard
-  :config
-  (dashboard-setup-startup-hook)
-  :custom
-  (dashboard-set-heading-icons t)
-  (dashboard-set-file-icons t)
-  (dashboard-items
-        '((bookmarks . 5)
-          (recents . 5)
-          (agenda . 10)))
-  (dashboard-startup-banner "~/.emacs.d/banners/4.txt")
-  (dashboard-center-content t)
-  (dashboard-show-shortcuts t)
-  (dashboard-set-init-info t)
-  (dashboard-set-footer t)
-  (dashboard-footer-messages
-        (read-lines "~/Documents/notes/quotes.org"))
-  (dashboard-set-navigator t)
-  (dashboard-navigator-buttons
-        `(;; line1
-          ((,nil
-            "Config"
-            "Open config file for easy editing"
-            (lambda (&rest _) (find-file "~/.emacs.d/emacs.org"))
-            'default)
-           )
-          ;; line 2
-          ((,nil
-            "Elfeed"
-            "Read RSS/Atom feeds with Elfeed"
-            (lambda (&rest _) (elfeed))
-            'default)
-           )
-          ;; line 3
-          ((,nil
-            "Terminal"
-            "Open vterm"
-            (lambda (&rest _) (vterm))
-            'default)
-           (nil
-            "Dired"
-            "Manage files with dired"
-            (lambda (&rest _) (dired "~/"))
-            'default)))))
-    ;;Make dashboard work in emacs -nw
-    (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-#+END_SRC
 ** Packages Setup
+
+*** Vertico
+#+BEGIN_SRC emacs-lisp
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode))
+
+(use-package vertico-directory
+  :after vertico
+  :ensure nil
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+#+END_SRC
+
 *** Vterm
 #+BEGIN_SRC emacs-lisp
 (use-package vterm
@@ -696,52 +611,6 @@ Primarily for when using Emacs on a laptop.
          (org-mode      . flyspell-mode))
   :config
   (setq ispell-program-name "/usr/bin/aspell"))
-#+END_SRC
-
-*** Company
-#+BEGIN_SRC emacs-lisp
-(use-package company
-  :config
-  (add-hook 'after-init-hook 'global-company-mode))
-#+END_SRC
-
-*** Helm
-#+BEGIN_SRC emacs-lisp
-(use-package helm
-  :init
-  (require 'helm-config)
-  :config
-  (setq helm-split-window-in-side-p t
-        helm-split-window-default-side 'below
-	helm-idle-delay 0.0
-	helm-input-idle-delay 0.01
-	helm-quick-update t
-	helm-ff-skip-boring-files t)
-  (helm-mode 1)
-  :bind (("M-x" . helm-M-x)
-         ("C-x C-m" . helm-M-x)
-         ("C-x C-f" . helm-find-files)
-         ("C-x v" . helm-projectile)
-         ("C-x c o" . helm-occur)
-         ("C-x c p" . helm-projectile-ag)
-         ("C-x c k" . helm-show-kill-ring)
-         :map helm-map
-         ("<tab>" . helm-execute-persistent-action)))
-#+END_SRC
-
-*** Linum: line numbers
-#+BEGIN_SRC emacs-lisp
-(use-package linum
-  :config
-  (setq linum-format " %3d ")
-  (global-linum-mode nil))
-#+END_SRC
-
-*** Rainbow Mode
-#+BEGIN_SRC emacs-lisp
-(use-package rainbow-mode
-  :init
-  (define-globalized-minor-mode global-rainbow-mode rainbow-mode rainbow-mode))
 #+END_SRC
 
 *** Magit
@@ -772,7 +641,6 @@ Primarily for when using Emacs on a laptop.
   (require 'ox-latex)
   (require 'ox-md)
   (require 'ox-hugo)
-  ;;(require 'ox-reveal)
 #+END_SRC
 **** Org-bullets
 #+BEGIN_SRC emacs-lisp
@@ -810,39 +678,17 @@ an active enough action that I'm ok with this."
 **** Org-agenda
 ***** TODO Consolidate templates for capture templates
 #+BEGIN_SRC emacs-lisp
-        (setq org-directory "~/Documents/notes/"
-              org-agenda-files '("~/Documents/notes/log.org" "~/Documents/notes/mobile.org")
-              ;;org-archive-location "~/Documents/notes/"
-              org-capture-templates
-              '(("t" "Todo" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/todo1.org"))
-                ("n" "Note" entry (file+headline "~/Documents/notes/notes.org" "Notes")(file "~/.emacs.d/templates/notes.orgcaptmpl"))
-                ("b" "Bullet" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/bullet.orgcaptmpl"))
-                ("d" "Deadline" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/deadline.org"))
-                ("e" "Blog" entry (file+olp "~/Projects/eduardorobles_blog/content/blog.org" "Drafts")(function org-hugo-new-subtree-post-capture-template)))
-              org-log-done (quote time)
-              org-todo-keywords '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)" "INCOMPLETE(x)"))
-              org-refile-targets '(("~/Documents/notes/archive.org" :maxlevel . 3)(org-agenda-files :maxlevel . 3)))
-
-    (setq org-agenda-custom-commands
-          '(("o" "Overview"
-             ((agenda "" ((org-agenda-span 7)                      ;; overview of appointments
-                          (org-agenda-start-on-weekday nil)         ;; calendar begins today
-                          (org-agenda-repeating-timestamp-show-all t)
-                          (org-agenda-entry-types '(:timestamp :sexp))))
-              (agenda "" ((org-agenda-span 1)                      ; daily agenda
-                          (org-deadline-warning-days 7)            ; 7 day advanced warning for deadlines
-                          (org-agenda-todo-keyword-format "[ ]")
-                          (org-agenda-scheduled-leaders '("" ""))
-                          (org-agenda-prefix-format "%t%s")))
-              (todo "TODO"                                          ;; todos sorted by context
-                    ((org-agenda-prefix-format "[ ] %T: ")
-                     (org-agenda-sorting-strategy '(tag-up))
-                     (org-agenda-todo-keyword-format "--")
-                    (org-agenda-overriding-header "\nTasks by Context\n------------------\n"))))
-             ((org-agenda-compact-blocks t))
-             ("~/Documents/notes/agenda.html"))
-            ;; other commands go here
-            ))
+          (setq org-directory "~/Documents/notes/"
+                org-agenda-files '("~/Documents/notes/log.org" "~/Documents/notes/mobile.org")
+                ;;org-archive-location "~/Documents/notes/"
+                org-capture-templates
+                '(("t" "Todo" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/todo1.org"))
+                  ("n" "Note" entry (file+headline "~/Documents/notes/notes.org" "Notes")(file "~/.emacs.d/templates/notes.orgcaptmpl"))
+                  ("b" "Bullet" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/bullet.orgcaptmpl"))
+                  ("d" "Deadline" entry (file+headline "~/Documents/notes/log.org" "Tasks")(file "~/.emacs.d/templates/deadline.org")))
+                org-log-done (quote time)
+                org-todo-keywords '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)" "INCOMPLETE(x)"))
+                org-refile-targets '(("~/Documents/notes/archive.org" :maxlevel . 3)(org-agenda-files :maxlevel . 3)))
 #+END_SRC
 **** Org-mode settings
 #+BEGIN_SRC emacs-lisp
@@ -850,7 +696,7 @@ an active enough action that I'm ok with this."
   org-startup-indented t
   org-insert-heading-respect-content t
   org-src-window-setup 'current-window
-  org-export-in-background nil
+  org-export-in-background t
   org-export-with-author nil
   org-export-babel-evaluate nil
   org-html-validation-link nil
@@ -858,36 +704,6 @@ an active enough action that I'm ok with this."
   org-src-tab-acts-natively t
   org-log-into-drawer t
   org-confirm-elisp-link-function 'y-or-n-p)
-#+END_SRC
-
-**** Org Journal
-#+BEGIN_SRC emacs-lisp
-  (use-package org-journal
-  :ensure t
-  :custom
-  (org-journal-dir "~/Org/journal/")
-  (org-journal-file-type 'weekly)
-  (org-journal-file-format "%Y%m%d.org")
-  (org-journal-time-prefix "*** ")
-  )
-
-  (setq org-journal-enable-agenda-integration t)
-
-  (defun org-journal-find-location ()
-    ;; Open today's journal, but specify a non-nil prefix argument in order to
-    ;; inhibit inserting the heading; org-capture will insert the heading.
-    (org-journal-new-entry t)
-    (unless (eq org-journal-file-type 'daily)
-      (org-narrow-to-subtree))
-    (goto-char (point-max)))
-
-;;  (setq org-capture-templates '(("i" "incident" plain (function org-journal-find-location)(file "~/.emacs.d/templates/incident.org"):jump-to-captured t :immediate-finish t)
-;;        ("r" "request" plain (function org-journal-find-location)(file "~/.emacs.d/templates/request.org"):jump-to-captured t :immediate-finish t)))
-#+END_SRC
-
-*** org-msg
-#+BEGIN_SRC emacs-lisp
-(use-package org-msg)
 #+END_SRC
 
 *** Demo-it
@@ -899,6 +715,7 @@ an active enough action that I'm ok with this."
 #+BEGIN_SRC emacs-lisp
 (use-package org-tree-slide)
 #+END_SRC
+
 *** Elfeed
 #+BEGIN_SRC emacs-lisp
   ;; Load elfeed
@@ -906,8 +723,7 @@ an active enough action that I'm ok with this."
     :ensure t
     :config
 (setq elfeed-use-curl t)
-(elfeed-set-timeout 36000)
-;;(setq elfeed-curl-extra-arguments '("--insecure")))
+(elfeed-set-timeout 36000))
 
   ;; Load elfeed-org
   (use-package elfeed-org
@@ -936,8 +752,6 @@ an active enough action that I'm ok with this."
 *** Smartparens
 #+BEGIN_SRC emacs-lisp
 (use-package smartparens)
-
-(use-package smex)
 #+END_SRC
 
 *** Which Key
@@ -947,12 +761,11 @@ an active enough action that I'm ok with this."
   (which-key-mode))
 #+END_SRC
 
-*** Wgrep and Yasnippet
+*** Yasnippet
 #+BEGIN_SRC emacs-lisp
-(use-package wgrep)
-
 (use-package yasnippet
   :config
+  (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
   (yas-global-mode 1))
 #+END_SRC
 
@@ -979,10 +792,12 @@ an active enough action that I'm ok with this."
 
 *** Markdown mode
 #+BEGIN_SRC emacs-lisp
-(use-package markdown-mode
-  :hook (markdown-mode . auto-fill-mode)
-  :config
-  (set-face-attribute 'markdown-code-face nil :inherit 'org-block))
+  (use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode)))
 #+END_SRC
 
 *** PDF tools
@@ -1002,36 +817,6 @@ an active enough action that I'm ok with this."
 *** Touch typing
 #+BEGIN_SRC emacs-lisp
 (use-package speed-type)
-#+END_SRC
-*** Emms
-Emms music player
-#+BEGIN_SRC emacs-lisp
-(use-package emms
-  :bind
-   (("C-c M-e g"   . emms-play-directory)
-   ("C-c M-e d"   . emms-play-dired)
-   ("C-c M-e v"   . emms-playlist-mode-go)
-   ("C-c M-e x"   . emms-start)
-   ("C-c M-e SPC" . emms-pause)
-   ("C-c M-e s"   . emms-stop)
-   ("C-c M-e n"   . emms-next)
-   ("C-c M-e p"   . emms-previous)
-   ("C-c M-e e"   . emms-play-file)
-   ("C-c M-e h"   . emms-shuffle)
-   ("C-c M-e r"   . emms-toggle-repeat-track)
-   ("C-c M-e R"   . emms-toggle-repeat-playlist)
-   ("C-c M-e >"   . emms-seek-forward)
-   ("C-c M-e <"   . emms-seek-backward)
-   ("C-c M-e f"   . emms-show))
-  :init
-  (add-hook 'emms-player-started-hook 'emms-show)
-  (setq emms-show-format "Playing: %s"
-        emms-source-file-default-directory "~/Music/"
-        emms-track-description-function 'emms-track-simple-description)
-  :config
- (emms-standard)
- (emms-default-players)
-)
 #+END_SRC
 
 *** Streaming
@@ -1056,27 +841,43 @@ https://github.com/howardabrams/dot-files/blob/master/emacs-emms.org
 
 *** Hugo
 #+BEGIN_SRC emacs-lisp
-(use-package ox-hugo
-  :ensure t            ;Auto-install the package from Melpa (optional)
-  :after ox)
+  (use-package ox-hugo
+    :ensure t   ;Auto-install the package from Melpa
+    :pin melpa  ;`package-archives' should already have ("melpa" . "https://melpa.org/packages/")
+    :after ox)
+(with-eval-after-load 'ox
+  (require 'ox-hugo))
 #+END_SRC
 
 **** Capture Templates for Ox-Hugo
 See https://ox-hugo.scripter.co/doc/org-capture-setup/
 #+BEGIN_SRC emacs-lisp
-(defun org-hugo-new-subtree-post-capture-template ()
-  (let* (
-         (date (format-time-string (org-time-stamp-format :long :inactive) (org-current-time)))
-         (title (read-from-minibuffer "Post Title: ")) ;Prompt to enter the post title
-         (fname (org-hugo-slug title)))
-    (mapconcat #'identity
-               `(
-                 ,(concat "** TODO " title)
-                 ":PROPERTIES:"
-                 ,(concat ":EXPORT_FILE_NAME: " fname)
-                 ":END:"
-                 "%?\n")                ;Place the cursor here finally
-               "\n")))
+    ;; Populates only the EXPORT_FILE_NAME property in the inserted heading.
+  (with-eval-after-load 'org-capture
+    (defun org-hugo-new-subtree-post-capture-template ()
+      "Returns `org-capture' template string for new Hugo post.
+  See `org-capture-templates' for more information."
+      (let* ((title (read-from-minibuffer "Post Title: ")) ;Prompt to enter the post title
+             (fname (org-hugo-slug title)))
+        (mapconcat #'identity
+                   `(
+                     ,(concat "* TODO " title)
+                     ":PROPERTIES:"
+                     ,(concat ":EXPORT_FILE_NAME: " fname)
+                     ":END:"
+                     "%?\n")          ;Place the cursor here finally
+                   "\n")))
+
+    (add-to-list 'org-capture-templates
+                 '("h"                ;`org-capture' binding + h
+                   "Hugo post"
+                   entry
+                   ;; It is assumed that below file is present in `org-directory'
+                   ;; and that it has a "Blog Ideas" heading. It can even be a
+                   ;; symlink pointing to the actual location of all-posts.org!
+                   (file+olp "~/Projects/eduardorobles_blog/content/blog.org" "Drafts")
+                   (function org-hugo-new-subtree-post-capture-template))))
+
 #+END_SRC
 
 *** SSH Config
@@ -1089,6 +890,16 @@ See https://ox-hugo.scripter.co/doc/org-capture-setup/
 #+BEGIN_SRC emacs-lisp
   (use-package somafm
   :ensure t)
+#+END_SRC
+*** Mastodon
+#+BEGIN_SRC emacs-lisp
+  (use-package mastodon
+    :ensure t
+    :config
+    (mastodon-discover))
+
+    (setq mastodon-instance-url "https://emacs.ch"
+          mastodon-active-user "tacosandlinux")
 #+END_SRC
 
 * Other
