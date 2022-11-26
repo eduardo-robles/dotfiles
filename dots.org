@@ -163,7 +163,7 @@ run '~/.tmux/plugins/tpm/tpm'
 ** Git Config
 #+BEGIN_SRC conf
 [user]
-	email = eduardorobles@protonmail.com
+	email = eduardorobles@proton.me
 	name = Eduardo Robles
 	signingkey = ENTERKEYHERE
 #+END_SRC
