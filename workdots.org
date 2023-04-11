@@ -321,7 +321,7 @@ an active enough action that I'm ok with this."
 **** Org-agenda
 #+BEGIN_SRC emacs-lisp
     (setq org-directory "~/Org"
-          org-agenda-files '("~/Org/journal")
+          org-agenda-files '("~/Org")
            org-capture-templates
         '(("t" "Todo" entry (file+headline "~/Org/log.org" "Tasks")(file "~/.emacs.d/templates/todo.orgcaptmpl"))
             ("n" "Note" entry (file+headline "~/Org/log.org" "Notes")(file "~/.emacs.d/templates/notes.orgcaptmpl"))
@@ -476,33 +476,3 @@ an active enough action that I'm ok with this."
 #+BEGIN_SRC emacs-lisp
 (use-package speed-type)
 #+END_SRC
-
-*** Vterm
-#+BEGIN_COMMENT
-(use-package vterm
-	:ensure t)
-
-(use-package multi-vterm
-	:ensure t)
-#+END_COMMENT
-
-*** Streaming
-Play online streams including Youtube
-Shamelessy stolen function from:
-https://github.com/howardabrams/dot-files/blob/master/emacs-emms.org
-
-#+BEGIN_SRC emacs-lisp
-(defun play-freecodecamp-radio ()
-   "Play Freecodecamp Radio"
-   (interactive)
-   (emms-play-streamlist "https://coderadio-admin.freecodecamp.org/public/coderadio/playlist/pls"))
-
-(defun play-chilledcow ()
-"Play Chilledcow on YT"
- (interactive)
- (emms-play-url "https://www.youtube.com/watch?v=hHW1oY26kxQ"))
-#+END_SRC
-
-=Add following to mpv.conf file to play without window in MPV to play youtube streams=
-~--no-video
-~
