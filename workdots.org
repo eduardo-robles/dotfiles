@@ -476,3 +476,18 @@ an active enough action that I'm ok with this."
 #+BEGIN_SRC emacs-lisp
 (use-package speed-type)
 #+END_SRC
+* RSS Feeds
+RSS Feeds to add into Elfeed in Emacs
+:PROPERTIES:
+:EXPORT_FILE_NAME: elfeed.org
+:END:
+*** Blogs                                                          :elfeed:
+*** https://eduardorobles.com/index.xml                              :blog:
+*** https://opensource.com/feed                                     :Linux:
+*** https://solar.lowtechmagazine.com/feeds/all-en.atom.xml     :GreenTech:
+*** [[https://xvrdm.github.io/index.xml][Invalid Input - Datascience Journal]]                             :emacs:
+*** [[https://thagomizer.com/atom.xml][thagomizer.com]]                                             :OpenSource:
+*** [[https://thenextweb.com/feed][The Next Web]]                                                :GreenTech:
+*** [[https://devblogs.microsoft.com/landingpage/][Microsoft Developers Blogs]]
+*** [[https://github.com/alexnathanson/solar-protocol/releases.atom][Solar Protocol - Github Releases]]
+*** [[https://blog.cloudflare.com/rss/][Cloudflare Blog]]
