@@ -581,6 +581,38 @@ an active enough action that I'm ok with this."
  Scheduled: %T
  Captured: %u
 #+END_SRC
+**** Request
+This is template for work order request from a specific (Sysaid) ticketing system. I primarily used it in a specific role but it is complex enough that it can be a good example to reference in the future. I also used org-journal with this template, so be sure to install that or modify the template to not use org-journal.
+#+BEGIN_SRC org-mode
+ *** %(format-time-string org-journal-time-format)Request#:%^{WO-NUM}
+ *Category*
+ %^{Category|Cyber-Security|Data-Center|Drone|General|Hardware|Network|PD-Units|Personnel|Software|Telecom|Websites}
+
+ *Sub-Category*
+ %^{Sub-Category}
+
+ *Request user*
+ %^{user}
+
+ ---
+
+ *Title*:
+ %^{Title}
+
+ *Description*:
+ %^{Description}
+
+ *Notes*:
+ #+BEGIN_QUOTE
+
+ #+END_QUOTE
+
+ *Solution*:
+ #+BEGIN_QUOTE
+
+ #+END_QUOTE
+
+#+END_SRC
 * RSS Feeds
 RSS Feeds to add into Elfeed in Emacs
 :PROPERTIES:
