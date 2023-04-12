@@ -613,6 +613,53 @@ This is template for work order request from a specific (Sysaid) ticketing syste
  #+END_QUOTE
 
 #+END_SRC
+**** Project
+#+BEGIN_SRC org-mode
+ #+TITLE: Template
+ #+AUTHOR: Eduardo Robles
+ #+DATE:
+ #+EMAIL:
+ #+OPTIONS: toc:nil num:nil html-style:nil
+ #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="orgPrint.css" />
+
+ * Title
+
+ * Purpose:
+
+ * Summary:
+
+ * Deliverables:
+
+ * Solution:
+
+ * Scope:
+
+#+END_SRC
+**** Meeting
+#+BEGIN_SRC org-mode
+ #+TITLE: Meeting
+ #+AUTHOR: Eduardo Robles
+ #+DATE:
+ #+EMAIL:
+ #+OPTIONS: toc:nil num:nil html-style:nil
+ #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="orgPrint.css" />
+
+ * Title
+
+ * Date:
+
+ * Purpose:
+
+ * Location:
+
+ * Attendees:
+
+ * Agenda:
+
+ * Meeting Minutes:
+
+ * Active Items:
+#+END_SRC
 * RSS Feeds
 RSS Feeds to add into Elfeed in Emacs
 :PROPERTIES:
