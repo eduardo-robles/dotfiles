@@ -364,14 +364,6 @@ PROMPT_COMMAND="$PROMPT_COMMAND; history -a; history -n"
 		     (unless (file-remote-p default-directory)
 		       (all-the-icons-dired-mode)))))
 #+END_SRC
-*** Catpuccin Theme
-#+BEGIN_SRC emacs-lisp
-  (use-package catppuccin-theme
-   :config
-   (setq catppuccin-height-title1 1.5))
-  (load-theme 'catppuccin t)
-#+END_SRC
-
 *** Doom Modeline
 #+BEGIN_SRC emacs-lisp
   (use-package doom-modeline
@@ -677,7 +669,7 @@ an active enough action that I'm ok with this."
 
 **** Org-agenda
 ***** TODO Consolidate templates for capture templates
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_COMMENT
           (setq org-directory "~/Documents/notes/"
                 org-agenda-files '("~/Documents/notes/log.org" "~/Documents/notes/mobile.org")
                 ;;org-archive-location "~/Documents/notes/"
@@ -689,7 +681,7 @@ an active enough action that I'm ok with this."
                 org-log-done (quote time)
                 org-todo-keywords '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)" "INCOMPLETE(x)"))
                 org-refile-targets '(("~/Documents/notes/archive.org" :maxlevel . 3)(org-agenda-files :maxlevel . 3)))
-#+END_SRC
+#+END_COMMENT
 **** Org-mode settings
 #+BEGIN_SRC emacs-lisp
 (setq org-confirm-babel-evaluate nil
