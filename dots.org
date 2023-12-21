@@ -145,6 +145,7 @@ set -g @plugin 'tmux-plugins/tpm'
 # Sensible plugins
 set -g @plguin 'tmux-plugins/tmux-sensible'
 set -g @plugin 'tmux-plugins/tmux-open'
+set -g @plugin 'tmux-plugins/tmux-yank'
 
 
 run '~/.tmux/plugins/tpm/tpm'
