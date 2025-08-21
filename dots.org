@@ -97,59 +97,7 @@ select 1
 bind c screen 1 # window numbering starts at 1 not 0
 bind 0 select 10
 #+END_SRC
-** Tmux
-#+BEGIN_SRC conf
-# Set crtl-t to Modify Key
-unbind C-b
-set -g prefix C-t
 
-# Force 256 Colors
-set -g default-terminal "screen-256color"
-
-# Move between panes withs t and +
-unbind ^T
-bind ^T select-pane -t :.+
-
-# emacs key bindings in tmux command prompt (prefix + :) are better than
-# vi keys, even for vim users
-set -g status-keys emacs
-
-# System Clipboard
-set -g set-clipboard on
-
-# Split panes with V and H
-bind h split-window -v
-bind v split-window -h
-
-# Pane Navigation
-bind l select-pane -L
-bind k select-pane -D
-bind i select-pane -U
-bind j select-pane -R
-
-
-# More scroll back
-set-option -g history-limit 10000
-
-# Turn on Mouse Mode
-set -g mouse on
-
-# Positon Status at Top
-set -g status-position top
-
-# - - - - - - - - - - - - - - - - - - - - - - - -
-#TMUX Plugins https://github.com/tmux-plugins/tpm
-# - - - - - - - - - - - - - - - - - - - - - - - -
-
-set -g @plugin 'tmux-plugins/tpm'
-# Sensible plugins
-set -g @plguin 'tmux-plugins/tmux-sensible'
-set -g @plugin 'tmux-plugins/tmux-open'
-set -g @plugin 'tmux-plugins/tmux-yank'
-
-
-run '~/.tmux/plugins/tpm/tpm'
-#+END_SRC
 ** Git Config
 #+BEGIN_SRC conf
 [user]
