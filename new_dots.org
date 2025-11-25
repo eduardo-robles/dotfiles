@@ -1,0 +1,684 @@
+#+TITLE: Literate Dotfile Configuration
+#+AUTHOR: Eduardo Robles
+#+DATE: 2025-05-13
+#+EMAIL: eduardorobles@proton.me
+#+OPTIONS: num:nil html-style:nil
+* Literate Dotfile Configuration
+* Purpose:
+  This document serves as a means to create a centralized location for all my system depedent configurations.
+* System Installation
+** Emacs
+*** IN-PROGRESS Systemd
+Install Emacs via package manager and create an Emacslient service with Systemd like so:
+
+- Create =systemd= service file at this location. (If your distro doesn't include the systemd unit file by default)
+    ~/.config/systemd/user/default.target.wants/emacs.service~
+- Add these configurations
+#+BEGIN_SRC bash
+[Unit]
+Description=Emacs: the extensible, self-documenting text editor
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/emacs --daemon
+ExecStop=/usr/bin/emacsclient --eval "(kill-emacs)"
+Restart=always
+
+[Install]
+WantedBy=default.target
+#+END_SRC
+- To enable and start =systemd= service:
+  ~systemctl --user enable emacs && systemctl --user start emacs~
+- To restart and quickly stop emacs service:
+  ~systemctl --user restart emacs~
+- Launch Emacs with:
+  ~emacsclient -t~ or ~emacsclient -c -a~
+*** DONE Emacs Client Desktop Entry
+CLOSED: [2025-11-25 Tue 04:57]
+#+BEGIN_SRC conf
+[Desktop Entry]
+Name=Emacs Client
+GenericName=Text Editor
+Comment=A flexible platform for end-user applications
+MimeType=text/english;text/plain;text/x-makefile;text/x-c++hdr;text/x-c++src;text/x-chdr;text/x-csrc;text/x-java;text/x-moc;text/x-pascal;text/x-tcl;text/x-tex;application/x-shellscript;text/x-c;text/x-c++;
+Exec=emacsclient -create-frame --alternate-editor="" --no-wait %F
+Icon=/home/erobles/Pictures/tacosandlinux.png
+Type=Application
+Terminal=false
+Categories=TextEditor;Utility;
+StartupWMClass=Emacs
+Keywords=Text;Editor;
+X-KDE-StartupNotify=false
+#+END_SRC
+** TODO SSH Agent
+*** Systemd
+** DONE Screen
+CLOSED: [2025-11-25 Tue 04:56]
+To emacs to behave with it's colors be sure to always launch an emacsclient session from within Screen. Also be sure that the Emacs server is supporting 256 colors in the temrinal.
+#+BEGIN_SRC conf
+  startup_message off
+  caption always "%{= ..}%-w%{= gW}%n %t%{-}%+w %-= @%H - %D %M %d - %C%a"
+  backtick 2 300 0 whoami
+  hardstatus on
+  hardstatus string '%2`@%H<%t>'
+  shell bash
+
+  vbell off
+  bell_msg "Bell in %n-%t at <%c> ^G"
+
+  # terminfo and termcap for nice 256 color terminal
+  # allow bold colors - necessary for some reason
+  attrcolor b ".I"
+  # tell screen how to set colors. AB = background, AF=foreground
+  termcapinfo rxvt*|xterm*    'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+
+  # erase background with current bg color
+  defbce "on"
+
+  # huge scrollback buffer
+  defscrollback 5000
+  noblock 5
+
+  # mouse tracking allows to switch region focus by clicking
+  mousetrack on
+
+  # navigating regions with Ctrl-arrows
+  bindkey "^[[1;5D" focus left
+  bindkey "^[[1;5C" focus right
+  bindkey "^[[1;5A" focus up
+  bindkey "^[[1;5B" focus down
+
+
+  screen -t Home 1 bash
+  screen -t emt 2 emacsclient -t -c
+  # Examples #
+  #bind R screen -t '% |rpi:' 3 ssh rpi-dev-srv
+  #bind P screen -t '% |proxmox:' 4 ssh proxmox
+  #screen -t Downloads 5 cd /home/erobles/Downloads/
+  select 1
+  bind c screen 1 # window numbering starts at 1 not 0
+  bind 0 select 10
+#+END_SRC
+** Git Config
+#+BEGIN_SRC conf
+[user]
+	email = eduardorobles@proton.me
+	name = Eduardo Robles
+	signingkey = ENTERKEYHERE
+#+END_SRC
+** Bash Aliases
+#+BEGIN_SRC conf
+  alias emt="emacsclient -t"
+  alias emc="emacsclient -c -a emacs"
+  alias ems='emacsclient -t -e "(progn (setenv \"SSH_AGENT_PID\" \"$(echo $SSH_AGENT_PID)\") (setenv \"SSH_AUTH_SOCK\" \"$(echo $SSH_AUTH_SOCK)\"))"'
+  alias semacs="systemctl status --user emacs.service"
+  alias remacs="systemctl restart --user emacs.service"
+#+END_SRC
+** TODO bashrc additions
+:LOGBOOK:
+- Note taken on [2025-11-25 Tue 04:59] \\
+  Fix the "Unified Bash History" command.
+:END:
+
+#+BEGIN_SRC bash
+  # Editor settings
+  export ALTERNATE_EDITOR="emacs -nw"
+  export TEXEDIT="emaclient -t +%d %s -a /usr/bin/emacs"
+  export EDITOR="emacsclient -t --alternate-editor /usr/bin/emacs" #$EDITOR opens in terminal
+  export VISUAL="emacsclient -c -a --alternate-editor /usr/bin/emacs" #$VISUAL opens in GUI mode
+
+
+  # Unified Bash History
+  shopt -s histappend
+  export PROMPT_COMMAND="history -a; history -n; $PROMPT_COMMAND"
+
+  # Bash Aliases
+  if [ -f ~/.bash_aliases ]; then
+      . ~/.bash_aliases
+  fi
+
+  # Start SSH Agent unless already running
+  #if [ -z "$SSH_AUTH_SOCK" ] ; then
+  #    eval `ssh-agent`
+  #    ssh-add
+  # fi
+#+END_SRC
+* Emacs
+** Init
+** Org Configurations File
+*** Startup Config
+#+BEGIN_SRC emacs-lisp
+    (setq confirm-kill-emacs                  'y-or-n-p
+	  confirm-nonexistent-file-or-buffer  t
+	  require-final-newline               t
+	  visible-bell                        nil
+	  ring-bell-function                  'ignore
+	  minibuffer-prompt-properties
+	  '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt)
+
+	  ;; Disable non selected window highlight
+	  cursor-in-non-selected-windows     nil
+	  highlight-nonselected-windows      nil
+	  indent-tabs-mode                   nil
+	  inhibit-startup-message            t
+	  fringes-outside-margins            t
+	  x-select-enable-clipboard          t
+	  create-lockfiles                   nil
+	  tramp-default-method               "ssh"
+	  )
+  (when (eq system-type 'windows-nt) (prefer-coding-system 'utf-8-unix))
+#+END_SRC
+*** Backup Settings
+    Disable backups. Creates ugly junk on filesystem.
+#+BEGIN_SRC emacs-lisp
+(setq backup-inhibited t
+      make-backup-files nil
+      auto-save-default nil)
+#+END_SRC
+*** User Details
+ #+BEGIN_SRC emacs-lisp
+(setq user-full-name "Eduardo Robles"
+      user-mail-address "eduardorobles@proton.me")
+ #+END_SRC
+*** Auth sources
+#+BEGIN_SRC emacs-lisp
+(require 'auth-source)
+(setq
+epa-file-encrypt-to user-mail-address
+auth-sources (list (expand-file-name "~/.emacs.d/.authinfo.age")))
+#+END_SRC
+*** GUI Settings
+**** Fonts
+#+BEGIN_SRC emacs-lisp
+(setq default-frame-alist '((font . "IBM Plex Mono-13")))
+(set-face-font 'default "IBM Plex Mono-13:weight=regular:slant=normal:width=normal:registry=iso10646-1")
+(set-face-font 'variable-pitch "IBM Plex Mono-13:weight=normal:slant=italic:width=normal")
+#+END_SRC
+**** All The Icons
+#+BEGIN_SRC emacs-lisp
+(use-package all-the-icons)
+
+(use-package all-the-icons-dired
+:config
+:hook (dired-mode . (lambda ()
+		     (interactive)
+		     (unless (file-remote-p default-directory)
+		       (all-the-icons-dired-mode)))))
+#+END_SRC
+
+**** Ef-themes
+#+BEGIN_SRC emacs-lisp
+  (use-package ef-themes
+    :ensure t)
+
+  (load-theme 'ef-bio :no-confirm)
+#+END_SRC
+
+*** Packages Setup
+**** Magit
+#+begin_src emacs-lisp
+(use-package magit)
+#+end_src
+**** ox-reveal
+#+BEGIN_SRC emacs-lisp
+(use-package ox-reveal)
+#+END_SRC
+**** Org
+***** Org-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package org
+     :bind
+          ("C-c l" . org-store-link)
+          ("C-c a" . org-agenda)
+          ("C-c c" . org-capture))
+  (require 'ox-html)
+  (require 'ox-latex)
+  (require 'ox-md)
+  (require 'ox-org)
+  (require 'ox-reveal)
+#+END_SRC
+***** Org-bullets
+#+BEGIN_SRC emacs-lisp
+(use-package org-bullets
+  :config
+  (setq org-hide-leading-stars t)
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (org-bullets-mode t))))
+#+END_SRC
+***** Org-babel
+#+BEGIN_SRC emacs-lisp
+  (define-advice org-babel-execute-src-block (:before (&rest _) d/load-lang)
+   "Load src language on demand.
+
+  This removes the need to add every language manually to
+  `org-babel-load-languages'. This also implies that any language
+  that supports execution can be executed. Executing src blocks is
+  an active enough action that I'm ok with this."
+   (let ((language (intern
+                    (org-element-property :language (org-element-at-point)))))
+     (message "LANG: %s" language)
+     (pcase language
+       ('sh (setq language 'shell))
+       ('C++ (setq language 'C)))
+     (message "LANG: %s" language)
+     (unless (alist-get language org-babel-load-languages)
+       (add-to-list 'org-babel-load-languages (cons language t))
+       (org-babel-do-load-languages
+        'org-babel-load-languages
+        org-babel-load-languages))))
+;;(setq org-plantuml-jar-path (expand-file-name "~/apps/plantuml.jar"))
+#+END_SRC
+
+***** Org-agenda
+#+BEGIN_COMMENT
+  (setq org-directory "~/Documents"
+        org-agenda-files '("~/Documents" "~/Documents/log.org")
+         org-capture-templates
+      '(("t" "Todo" entry (file+headline "~/Documents/log.org" "Tasks")(file "~/templates/todo.org"))
+          ("n" "Note" entry (file+headline "~/Documents/log.org" "Notes")(file "~/templates/notes.org"))
+          ("c" "Contact" entry (file+headline "~/Documents/contacts.org" "Work Contacts")(file "~/templates/contacts.org")))
+        org-log-done (quote time)
+        org-todo-keywords '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)" "INCOMPLETE(x)"))
+        org-refile-targets '(("~/Archive/archive.org" :maxlevel . 3)))
+  ;;(setq org-agenda-span 'month)
+  ;;(setq org-agenda-start-with-log-mode t)
+  ;;(setq org-log-done t)
+  ;;(setq org-log-into-drawer non-nil)
+  ;;(setq org-clock-into-drawer t)
+
+  (setq org-agenda-custom-commands
+        '(
+          ("z" "Items In Progress"
+           ((todo "IN-PROGRESS"
+                  ((org-agenda-overriding-header "Items In Progress\n")
+                   (org-agenda-files '("~/Documents"))))))
+           ("x" "Items TODO"
+            ((todo "TODO"
+                ((org-agenda-overriding-header "Items TODO\n")
+                 (org-agenda-files '("~/Documents"))))))
+          ("w" "Items That Need to WAIT"
+           ((todo "WAIT"
+              ((org-agenda-overriding-header "Items That Need to WAIT\n")
+               (org-agenda-files '("~/Documents"))))))))
+#+END_COMMENT
+***** Org Journal
+#+BEGIN_SRC emacs-lisp
+      (use-package org-journal
+      :ensure t
+      :custom
+      (org-journal-dir "~/Sync/journal/")
+      (org-journal-file-type 'weekly)
+      (org-journal-encrypt-journal nil)
+      (org-journal-file-format "%Y%m%d.org.age")
+      (org-journal-time-prefix "*** ")
+      )
+
+    ;; When =org-journal-file-pattern= has the default value, this would be the regex.
+  (setq org-agenda-file-regexp "\\`\\\([^.].*\\.org\\\|[0-9]\\\{8\\\}\\\(\\.org.age\\\)?\\\)\\'")
+  (add-to-list 'org-agenda-files org-journal-dir)
+      ;;(setq org-journal-enable-agenda-integration t)
+
+      (defun org-journal-find-location ()
+        ;; Open today's journal, but specify a non-nil prefix argument in order to
+        ;; inhibit inserting the heading; org-capture will insert the heading.
+        (org-journal-new-entry t)
+        (unless (eq org-journal-file-type 'daily)
+          (org-narrow-to-subtree))
+        (goto-char (point-max)))
+
+    ;;  (setq org-capture-templates '(("i" "incident" plain (function org-journal-find-location)(file "~/.emacs.d/templates/incident.org"):jump-to-captured t :immediate-finish t)
+    ;;        ("r" "request" plain (function org-journal-find-location)(file "~/.emacs.d/templates/request.org"):jump-to-captured t :immediate-finish t)))
+#+END_SRC
+***** Org-mode settings
+#+BEGIN_SRC emacs-lisp
+(setq org-confirm-babel-evaluate nil
+  org-startup-indented t
+  org-insert-heading-respect-content t
+  org-src-window-setup 'current-window
+  org-export-in-background nil
+  org-export-with-author nil
+  org-export-babel-evaluate nil
+  org-html-validation-link nil
+  org-confirm-babel-evaluate nil
+  org-src-tab-acts-natively t
+  org-log-into-drawer t
+  org-confirm-elisp-link-function 'y-or-n-p)
+#+END_SRC
+
+**** Demo-it
+#+BEGIN_SRC emacs-lisp
+    (use-package demo-it
+      :ensure nil
+      :defer t)
+#+END_SRC
+
+**** Org Tree Slide
+#+BEGIN_SRC emacs-lisp
+    (use-package org-tree-slide
+      :ensure nil
+      :defer t)
+#+END_SRC
+**** Elfeed
+#+BEGIN_SRC emacs-lisp
+      ;; Load elfeed
+      (use-package elfeed
+        :ensure t
+      ;;  :config
+      ;; (setq elfeed-feeds
+      ;;    '("https://eduardorobles.com/index.xml"
+      ;;      "https://www.microsoft.com/en-us/security/blog/feed/"
+      ;;      "https://opensource.com/feed"
+      ;;      "https://xvrdm.github.io/index.xml"
+      ;;      "https://blog.rapid7.com/tag/detection-and-response/rss/"
+      ;;      "https://newsroom.trendmicro.com/cyberthreat?pagetemplate=rss"
+      ;;      "https://www.cisa.gov/news.xml"
+      ;;      "https://www.cisa.gov/cisa/blog.xml"
+      ;;      "https://www.cisa.gov/cybersecurity-advisories/all.xml"
+      ;;      "https://www.bleepingcomputer.com/feed/"
+            ;;"https://forecast.weather.gov/MapClick.php?lat=26.4628&lon=-98.2568&unit=0&lg=english&FcstType=dwml"
+      ;;      "https://krebsonsecurity.com/feed/"
+      ;;      "https://www.schneier.com/blog/atom.xml"
+      ;;      "https://feeds.feedburner.com/TheHackersNews"
+      ;;      "https://technet.microsoft.com/en-us/security/rss/advisory"))
+       )
+      ;; Load elfeed-goodies
+      (use-package elfeed-goodies
+        :ensure t
+        :defer t)
+      (use-package elfeed-org
+        :ensure t
+        :defer t)
+
+      (require 'elfeed)
+      (require 'elfeed-goodies)
+
+      (elfeed-goodies/setup)
+
+      (require 'elfeed-org)
+      (elfeed-org)
+      ;;(setq rmh-elfeed-org-files (list "~/.emacs.d/cybersec_feeds.org"))
+#+END_SRC
+
+**** Smartparens
+#+BEGIN_SRC emacs-lisp
+(use-package smartparens)
+#+END_SRC
+**** Which Key
+#+BEGIN_SRC emacs-lisp
+(use-package which-key
+  :config
+  (which-key-mode))
+#+END_SRC
+**** Yasnippet
+#+BEGIN_SRC emacs-lisp
+(use-package yasnippet
+  :config
+  (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
+  (yas-global-mode 1))
+#+END_SRC
+
+**** HTMLIZE
+#+BEGIN_SRC emacs-lisp
+(use-package htmlize)
+#+END_SRC
+
+**** JSON mode
+#+BEGIN_SRC emacs-lisp
+  (use-package json-mode);;CONFIGURE MODE
+#+END_SRC
+
+**** Markdown mode
+#+BEGIN_SRC emacs-lisp
+  (use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode)))
+#+END_SRC
+
+**** YAML mode
+#+BEGIN_SRC emacs-lisp
+(use-package yaml-mode);;CONFIGURE MODE
+#+END_SRC
+
+**** Encryption
+Using [[https://github.com/FiloSottile/age][age]] encryption. Implemented with [[https://github.com/anticomputer/age.el][age.el]] in emacs.
+#+BEGIN_SRC emacs-lisp
+  (use-package age
+    :ensure t
+    :demand t
+    :custom
+    (age-program "age")
+    (age-default-identity "~/.ssh/KEYGOESHERE")
+    (age-default-recipient
+     '("~/.ssh/KEYGOESHERE.pub"))
+    :config
+    (age-file-enable))
+#+END_SRC
+
+**** EMMS
+#+begin_src emacs-lisp
+  (use-package emms)
+  (emms-all)
+  (emms-standard)
+  (emms-default-players)
+  (setq emms-player-list '(emms-player-mpv)
+        emms-info-functions '(emms-info-native)
+        emms-show-format "Playing: %s")
+#+end_src
+**** Streaming
+Play online streams.
+Shamelessy stolen function from:
+https://github.com/howardabrams/dot-files/blob/master/emacs-emms.org
+
+#+BEGIN_SRC emacs-lisp
+  (defun play-defcon-radio ()
+     "Play defcon Radio"
+     (interactive)
+     (emms-play-url "https://ice4.somafm.com/defcon-256-mp3"))
+
+   (defun play-thetrip-radio ()
+     "Play defcon Radio"
+     (interactive)
+     (emms-play-url "https://ice2.somafm.com/thetrip-128-mp3"))
+
+  (defun play-freecodecamp-radio ()
+  "Play freecodecamp radio - Low"
+   (interactive)
+   (emms-play-url "https://coderadio-admin-v2.freecodecamp.org/listen/coderadio/low.mp3"))
+
+  (defun play-tilde-radio()
+    "Play Tilde Radio"
+    (interactive)
+    (emms-play-url "https://azuracast.tilderadio.org/radio/8000/radio.ogg"))
+
+  (defun play-kmfa-radio()
+    "Play KMFA Radio"
+    (interactive)
+    (emms-play-url "https://kmfa.streamguys1.com/KMFA-mp3"))
+#+END_SRC
+
+=Add following to mpv.conf file to play without window in MPV to play youtube streams=
+~--no-video~
+
+**** Hugo
+#+BEGIN_SRC emacs-lisp
+  (use-package ox-hugo
+    :ensure t   ;Auto-install the package from Melpa
+    :pin melpa  ;`package-archives' should already have ("melpa" . "https://melpa.org/packages/")
+    :after ox)
+(with-eval-after-load 'ox
+  (require 'ox-hugo))
+#+END_SRC
+
+**** Capture Templates for Ox-Hugo
+See https://ox-hugo.scripter.co/doc/org-capture-setup/
+#+BEGIN_SRC emacs-lisp
+    ;; Populates only the EXPORT_FILE_NAME property in the inserted heading.
+  (with-eval-after-load 'org-capture
+    (defun org-hugo-new-subtree-post-capture-template ()
+      "Returns `org-capture' template string for new Hugo post.
+  See `org-capture-templates' for more information."
+      (let* ((title (read-from-minibuffer "Post Title: ")) ;Prompt to enter the post title
+             (fname (org-hugo-slug title)))
+        (mapconcat #'identity
+                   `(
+                     ,(concat "* TODO " title)
+                     ":PROPERTIES:"
+                     ,(concat ":EXPORT_FILE_NAME: " fname)
+                     ":END:"
+                     "%?\n")          ;Place the cursor here finally
+                   "\n")))
+
+    (add-to-list 'org-capture-templates
+                 '("h"                ;`org-capture' binding + h
+                   "Hugo post"
+                   entry
+                   ;; It is assumed that below file is present in `org-directory'
+                   ;; and that it has a "Blog Ideas" heading. It can even be a
+                   ;; symlink pointing to the actual location of all-posts.org!
+                   (file+olp "~/Projects/eduardorobles_blog/content/drafts.org" "Drafts")
+                   (function org-hugo-new-subtree-post-capture-template))))
+
+#+END_SRC
+
+**** SSH Config
+#+BEGIN_SRC emacs-lisp
+(use-package ox-ssh
+:ensure t
+:after ox)
+#+END_SRC
+**** ERC
+https://notes.secretsauce.net/notes/2014/10/08_znc-and-erc.html
+#+begin_src emacs-lisp
+;; Load authentication info from an external source.  Put sensitive
+;; passwords and the like in here.
+;;(load "~/.emacs.d/.authinfo.age")
+
+;; This is an example of how to make a new command.  Type "/uptime" to
+;; use it.
+(defun erc-cmd-UPTIME (&rest ignore)
+  "Display the uptime of the system, as well as some load-related
+stuff, to the current ERC buffer."
+  (let ((uname-output
+         (replace-regexp-in-string
+          ", load average: " "] {Load average} ["
+          ;; Collapse spaces, remove
+          (replace-regexp-in-string
+           " +" " "
+           ;; Remove beginning and trailing whitespace
+           (replace-regexp-in-string
+            "^ +\\|[ \n]+$" ""
+            (shell-command-to-string "uptime"))))))
+    (erc-send-message
+     (concat "{Uptime} [" uname-output "]"))))
+
+;; This causes ERC to connect to the Libera.Chat network upon hitting
+;; C-c e f.  Replace MYNICK with your IRC nick.
+(global-set-key "\C-cef" (lambda () (interactive)
+                           (erc :server "xx.xx" :port "xxxx" :nick "tacosandlinux" :password "tclnx/libera:xxxxx")))
+
+;; This causes ERC to connect to the IRC server on your own machine (if
+;; you have one) upon hitting C-c e b.  Replace MYNICK with your IRC
+;; nick.  Often, people like to run bitlbee (https://bitlbee.org/) as an
+;; AIM/Jabber/MSN to IRC gateway, so that they can use ERC to chat with
+;; people on those networks.
+(global-set-key "\C-ceb" (lambda () (interactive)
+                           (erc :server "xx.xx" :port "xxx" :nick "tacosandlinux" :password "tclnx/tilde:xxxxx")))
+
+;; Make C-c RET (or C-c C-RET) send messages instead of RET.  This has
+;; been commented out to avoid confusing new users.
+;; (define-key erc-mode-map (kbd "RET") nil)
+;; (define-key erc-mode-map (kbd "C-c RET") 'erc-send-current-line)
+;; (define-key erc-mode-map (kbd "C-c C-RET") 'erc-send-current-line)
+
+;;; Options
+
+;; Join the #emacs and #erc channels whenever connecting to
+;; Libera.Chat.
+;(setq erc-autojoin-channels-alist
+;      '(("Libera.Chat" "#emacs" "#erc")))
+
+;; Interpret mIRC-style color commands in IRC chats
+(setq erc-interpret-mirc-color t)
+
+;; The following are commented out by default, but users of other
+;; non-Emacs IRC clients might find them useful.
+;; Kill buffers for channels after /part
+ (setq erc-kill-buffer-on-part t)
+;; Kill buffers for private queries after quitting the server
+;; (setq erc-kill-queries-on-quit t)
+;; Kill buffers for server messages after quitting the server
+ (setq erc-kill-server-buffer-on-quit t)
+
+
+#+end_src
+**** Defang URL
+This vibe code was written by AI. If it sucks blame the AI.
+#+begin_src emacs-lisp
+(defun defang-url (url)
+  "Defang the given URL by replacing 'http' with 'hxxp', adding square brackets around every '.', and removing 'www'.
+Display the defanged URL in a new buffer."
+  (interactive "sEnter URL: ")  ; Prompt user for input
+  (let ((defanged-url (replace-regexp-in-string
+                        "http://\\|https://"
+                        (lambda (match)
+                          (if (string= match "http://") "hxxp://" "hxxps://"))
+                        url)))
+    (setq defanged-url (replace-regexp-in-string "\\." "[.]"
+                                                  defanged-url))  ; Add square brackets around every '.'
+
+    ;; Create a new buffer to display the defanged URL
+    (let ((buffer (get-buffer-create "*Defanged URL*")))
+      (with-current-buffer buffer
+        (erase-buffer)  ; Clear the buffer
+        (insert defanged-url)  ; Insert the defanged URL
+        (goto-char (point-min))  ; Move to the beginning of the buffer
+        (text-mode))  ; Use text mode for better formatting
+      (display-buffer buffer))))  ; Display the buffer
+#+end_src
+**** Powershell
+#+begin_src emacs-lisp
+(use-package ob-powershell)
+#+end_src
+**** Yara
+#+begin_src emacs-lisp
+(use-package yara-mode)
+#+end_src
+**** Vertico
+#+BEGIN_SRC emacs-lisp
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode))
+
+(use-package vertico-directory
+  :after vertico
+  :ensure nil
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+#+END_SRC
+**** Flycheck
+#+BEGIN_SRC emacs-lisp
+(use-package flycheck
+  :hook ((prog-mode . flycheck-mode)
+         (markdown-mode . flycheck-mode)
+         (org-mode . flycheck-mode))
+  :config
+  (setq flycheck-check-syntax-automatically '(save mode-enabled newline))
+  (setq flycheck-display-errors-delay 0.1)
+    (setq flycheck-checker-error-threshold 1000)
+  (setq flycheck-indication-mode nil)
+  (define-key flycheck-mode-map (kbd "<f8>") #'flycheck-next-error)
+  (define-key flycheck-mode-map (kbd "S-<f8>") #'flycheck-previous-error))
+#+END_SRC
+
+**** Page Break Lines
+#+BEGIN_COMMENT
+(use-package page-break-lines)
+#+END_COMMENT
