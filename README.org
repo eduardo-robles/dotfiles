@@ -3,16 +3,20 @@
 :CUSTOM_ID: hi-im-eduardo-robles
 :align: center
 :END:
-*** Linux nerd interested in Information Security, Cyber Security, Open
-Source, tacos, and coffee. I've been using #linux for 12+ yrs, learned
-emacs and never looked back.
+*** About Me
+Linux nerd interested in Information Security, Cyber Security, Open
+Source, tacos, and coffee.
+
+Emacs is my way of life and Screen is my serial console of choice.
+
+You'll probably catch me ripping music to my Sony Minidisc or using Emacs for InfoSec.
 :PROPERTIES:
 :CUSTOM_ID: linux-nerd-interested-in-information-security-cyber-security-open-source-tacos-and-coffee.-ive-been-using-linux-for-12-yrs-learned-emacs-and-never-looked-back.
 :align: center
 :END:
 - 🔭 I'm currently working on *Full System Literate Config*
 
-- 🌱 I'm currently learning *DevOps*
+- 🌱 I'm currently learning *DevSecOps*
 
 - 👨‍💻 All of my projects are available at
   [[https://www.eduardorobles.com/pages/videos/]]
@@ -26,7 +30,6 @@ emacs and never looked back.
 :CUSTOM_ID: connect-with-me
 :align: left
 :END:
-- Twitter :bird:  https://twitter.com/tacosandlinux
 - LinkedIn :linked_paperclips:  https://linkedin.com/in/hello-im-eduardo
 - RSS :spider-web:  https://www.eduardorobles.com/index.xml
 
